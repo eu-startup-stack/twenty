@@ -1,7 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 
-import { isDefined } from 'twenty-shared/utils';
 import { In, Repository } from 'typeorm';
 
 import { type MessageChannelEntity } from 'src/engine/metadata-modules/message-channel/entities/message-channel.entity';
@@ -31,8 +30,8 @@ export class MessagingProcessFolderActionsService {
   ): Promise<void> {
     const foldersWithPendingActions = messageFolders.filter(
       (folder) =>
-        isDefined(folder.pendingSyncAction) &&
-        folder.pendingSyncAction !== MessageFolderPendingSyncAction.NONE,
+        folder.pendingSyncAction ===
+        MessageFolderPendingSyncAction.FOLDER_DELETION,
     );
 
     if (foldersWithPendingActions.length === 0) {
@@ -53,22 +52,17 @@ export class MessagingProcessFolderActionsService {
           `WorkspaceId: ${workspaceId}, MessageChannelId: ${messageChannel.id}, FolderId: ${folder.id} - Processing folder action: ${folder.pendingSyncAction}`,
         );
 
-        if (
-          folder.pendingSyncAction ===
-          MessageFolderPendingSyncAction.FOLDER_DELETION
-        ) {
-          await this.messagingDeleteFolderMessagesService.deleteFolderMessages(
-            workspaceId,
-            messageChannel,
-            folder,
-          );
+        await this.messagingDeleteFolderMessagesService.deleteFolderMessages(
+          workspaceId,
+          messageChannel,
+          folder,
+        );
 
-          folderIdsToDelete.push(folder.id);
+        folderIdsToDelete.push(folder.id);
 
-          this.logger.debug(
-            `WorkspaceId: ${workspaceId}, MessageChannelId: ${messageChannel.id}, FolderId: ${folder.id} - Completed FOLDER_DELETION action`,
-          );
-        }
+        this.logger.debug(
+          `WorkspaceId: ${workspaceId}, MessageChannelId: ${messageChannel.id}, FolderId: ${folder.id} - Completed FOLDER_DELETION action`,
+        );
 
         processedFolderIds.push(folder.id);
       } catch (error) {
