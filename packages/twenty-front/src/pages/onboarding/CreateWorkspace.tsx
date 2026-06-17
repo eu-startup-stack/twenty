@@ -1,6 +1,6 @@
 import { styled } from '@linaria/react';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { Key } from 'ts-key-enum';
 import { z } from 'zod';
@@ -75,6 +75,10 @@ export const CreateWorkspace = () => {
   );
   const currentWorkspace = useAtomStateValue(currentWorkspaceState);
 
+  // When the name was already collected during workspace creation (Step 1), we
+  // skip the form entirely and auto-activate the workspace on mount.
+  const shouldAutoActivate = isNonEmptyString(currentWorkspace?.displayName);
+
   const validationSchema = z
     .object({
       name: z.string().min(1, { message: t`Name can not be empty` }),
@@ -140,6 +144,22 @@ export const CreateWorkspace = () => {
     ],
   );
 
+  // Auto-activation is an imperative one-time action, so a mount effect is the
+  // right tool here. The ref guard ensures it only fires once.
+  const hasAutoActivatedRef = useRef(false);
+  useEffect(() => {
+    if (
+      !shouldAutoActivate ||
+      hasAutoActivatedRef.current ||
+      !isNonEmptyString(currentWorkspace?.displayName)
+    ) {
+      return;
+    }
+
+    hasAutoActivatedRef.current = true;
+    void onSubmit({ name: currentWorkspace.displayName });
+  }, [shouldAutoActivate, currentWorkspace?.displayName, onSubmit]);
+
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.nativeEvent.isComposing || event.keyCode === 229) {
       return;
@@ -152,7 +172,8 @@ export const CreateWorkspace = () => {
 
   return (
     <ModalContent isVerticallyCentered isHorizontallyCentered>
-      {pendingCreationLoaderStep !== PendingCreationLoaderStep.None && (
+      {(shouldAutoActivate ||
+        pendingCreationLoaderStep !== PendingCreationLoaderStep.None) && (
         <>
           <Logo
             primaryLogo={
@@ -186,7 +207,8 @@ export const CreateWorkspace = () => {
           </StyledLoaderContainer>
         </>
       )}
-      {pendingCreationLoaderStep === PendingCreationLoaderStep.None && (
+      {!shouldAutoActivate &&
+        pendingCreationLoaderStep === PendingCreationLoaderStep.None && (
         <>
           <Title noMarginTop>
             <Trans>Create your workspace</Trans>

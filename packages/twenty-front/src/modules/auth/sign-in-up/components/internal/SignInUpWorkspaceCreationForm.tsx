@@ -3,7 +3,9 @@ import { StyledOnboardingContentContainer } from '@/auth/components/StyledOnboar
 import { useSignUpInNewWorkspace } from '@/auth/sign-in-up/hooks/useSignUpInNewWorkspace';
 import { useWorkspaceSubdomainField } from '@/auth/sign-in-up/hooks/useWorkspaceSubdomainField';
 import { domainConfigurationState } from '@/domain-manager/states/domainConfigurationState';
+import { ImageInput } from '@/ui/input/components/ImageInput';
 import { InputHint } from '@/ui/input/components/InputHint';
+import { InputLabel } from '@/ui/input/components/InputLabel';
 import { TextInput } from '@/ui/input/components/TextInput';
 import { useAtomStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomStateValue';
 import { useLingui } from '@lingui/react/macro';
@@ -49,6 +51,10 @@ export const SignInUpWorkspaceCreationForm = () => {
   const { frontDomain } = useAtomStateValue(domainConfigurationState);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [logo, setLogo] = useState<File | undefined>(undefined);
+  const [logoPreviewUrl, setLogoPreviewUrl] = useState<string | undefined>(
+    undefined,
+  );
 
   const {
     workspaceName,
@@ -65,6 +71,31 @@ export const SignInUpWorkspaceCreationForm = () => {
   const isContinueDisabled =
     workspaceName.trim() === '' || !isAvailable || isSubmitting;
 
+  // The workspace does not exist yet, so we hold the picked file locally and
+  // only upload it once the workspace is created.
+  const handleLogoUpload = (file: File) => {
+    if (!isDefined(file)) {
+      return;
+    }
+    setLogo(file);
+    setLogoPreviewUrl((previousUrl) => {
+      if (isDefined(previousUrl)) {
+        URL.revokeObjectURL(previousUrl);
+      }
+      return URL.createObjectURL(file);
+    });
+  };
+
+  const handleLogoRemove = () => {
+    setLogo(undefined);
+    setLogoPreviewUrl((previousUrl) => {
+      if (isDefined(previousUrl)) {
+        URL.revokeObjectURL(previousUrl);
+      }
+      return undefined;
+    });
+  };
+
   const handleSubmit = async () => {
     if (isContinueDisabled) {
       return;
@@ -75,6 +106,7 @@ export const SignInUpWorkspaceCreationForm = () => {
       await createWorkspace({
         displayName: workspaceName.trim(),
         subdomain,
+        logo,
         newTab: false,
       });
     } finally {
@@ -106,6 +138,14 @@ export const SignInUpWorkspaceCreationForm = () => {
       <SubTitle>
         {t`Pick a name and a web address for your new workspace.`}
       </SubTitle>
+      <StyledSection>
+        <InputLabel>{t`Workspace logo`}</InputLabel>
+        <ImageInput
+          picture={logoPreviewUrl}
+          onUpload={handleLogoUpload}
+          onRemove={handleLogoRemove}
+        />
+      </StyledSection>
       <StyledSection>
         <TextInput
           autoFocus

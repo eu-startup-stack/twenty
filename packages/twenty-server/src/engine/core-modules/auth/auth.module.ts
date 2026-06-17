@@ -42,6 +42,7 @@ import { EmailVerificationModule } from 'src/engine/core-modules/email-verificat
 import { EnterpriseModule } from 'src/engine/core-modules/enterprise/enterprise.module';
 import { FeatureFlagEntity } from 'src/engine/core-modules/feature-flag/feature-flag.entity';
 import { FeatureFlagModule } from 'src/engine/core-modules/feature-flag/feature-flag.module';
+import { FileCorePictureModule } from 'src/engine/core-modules/file/file-core-picture/file-core-picture.module';
 import { FileModule } from 'src/engine/core-modules/file/file.module';
 import { GuardRedirectModule } from 'src/engine/core-modules/guard-redirect/guard-redirect.module';
 import { JwtModule } from 'src/engine/core-modules/jwt/jwt.module';
@@ -125,6 +126,7 @@ import { JwtAuthStrategy } from './strategies/jwt.auth.strategy';
     SecureHttpClientModule,
     EnterpriseModule,
     FileModule,
+    FileCorePictureModule,
     ConnectedAccountTokenEncryptionModule,
     EmailAliasManagerModule,
   ],
