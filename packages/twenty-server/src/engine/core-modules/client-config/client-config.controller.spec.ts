@@ -101,6 +101,9 @@ describe('ClientConfigController', () => {
         isCloudflareIntegrationEnabled: false,
         isClickHouseConfigured: false,
         isWorkspaceSchemaDDLLocked: false,
+        authentik: {
+          enabled: false,
+        },
       };
 
       jest

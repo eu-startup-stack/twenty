@@ -1181,6 +1181,44 @@ export class ConfigVariables {
   @ConfigVariablesMetadata({
     group: ConfigVariablesGroup.SERVER_CONFIG,
     description:
+      'Enable Authentik forward-auth / proxy-provider header authentication. ' +
+      'When true, the GET /auth/authentik endpoint is active and the frontend ' +
+      'redirects to it on mount. Requires Twenty to be deployed behind an ' +
+      'Authentik outpost that injects X-authentik-* headers.',
+    type: ConfigVariableType.BOOLEAN,
+    isEnvOnly: true,
+  })
+  @IsOptional()
+  AUTHENTIK_HEADER_AUTH_ENABLED = false;
+
+  @ConfigVariablesMetadata({
+    group: ConfigVariablesGroup.SERVER_CONFIG,
+    description:
+      'Prefix used to identify Authentik groups that should be mapped to ' +
+      'Twenty workspace roles. Only groups whose name starts with this prefix ' +
+      'are considered; the prefix is stripped before role matching.',
+    type: ConfigVariableType.STRING,
+    isEnvOnly: true,
+  })
+  @IsOptional()
+  AUTHENTIK_HEADER_GROUP_PREFIX: string = 'twenty-';
+
+  @ConfigVariablesMetadata({
+    group: ConfigVariablesGroup.SERVER_CONFIG,
+    description:
+      'Subdomain of the target workspace for Authentik header auth. ' +
+      'When set, the /auth/authentik endpoint resolves the workspace by this ' +
+      'subdomain. When unset, the endpoint falls back to the single workspace ' +
+      'in the database (fails with 500 if zero or multiple workspaces exist).',
+    type: ConfigVariableType.STRING,
+    isEnvOnly: true,
+  })
+  @IsOptional()
+  AUTHENTIK_TARGET_WORKSPACE_SUBDOMAIN: string = '';
+
+  @ConfigVariablesMetadata({
+    group: ConfigVariablesGroup.SERVER_CONFIG,
+    description:
       'Unique identifier for this server instance, generated as UUID v4 during database seeding',
     type: ConfigVariableType.STRING,
     isEnvOnly: true,

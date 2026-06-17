@@ -21,6 +21,7 @@ import { MetadataGraphQLApiModule } from 'src/engine/api/graphql/metadata-graphq
 import { McpMethodGuardMiddleware } from 'src/engine/api/mcp/middlewares/mcp-method-guard.middleware';
 import { McpModule } from 'src/engine/api/mcp/mcp.module';
 import { RestApiModule } from 'src/engine/api/rest/rest-api.module';
+import { AuthentikHeaderStripMiddleware } from 'src/engine/core-modules/auth/middlewares/authentik-header-strip.middleware';
 import { WorkspaceAuthContextMiddleware } from 'src/engine/core-modules/auth/middlewares/workspace-auth-context.middleware';
 import { MetricsModule } from 'src/engine/core-modules/metrics/metrics.module';
 import { DataloaderModule } from 'src/engine/dataloaders/dataloader.module';
@@ -112,6 +113,10 @@ export class AppModule {
   }
 
   configure(consumer: MiddlewareConsumer) {
+    // Strip X-authentik-* headers from untrusted sources unconditionally
+    // (security in depth — runs regardless of AUTHENTIK_HEADER_AUTH_ENABLED).
+    consumer.apply(AuthentikHeaderStripMiddleware).forRoutes('{*splat}');
+
     consumer
       .apply(
         GraphQLHydrateRequestFromTokenMiddleware,

@@ -238,6 +238,12 @@ export class ClientConfigMaintenanceMode {
   link?: string;
 }
 
+@ObjectType('AuthentikClientConfig')
+export class AuthentikClientConfig {
+  @Field(() => Boolean)
+  enabled: boolean;
+}
+
 @ObjectType()
 export class ClientConfig {
   @Field(() => String, { nullable: true })
@@ -329,4 +335,7 @@ export class ClientConfig {
 
   @Field(() => ClientConfigMaintenanceMode, { nullable: true })
   maintenance?: ClientConfigMaintenanceMode;
+
+  @Field(() => AuthentikClientConfig)
+  authentik: AuthentikClientConfig;
 }

@@ -1,4 +1,5 @@
 import { aiModelsState } from '@/client-config/states/aiModelsState';
+import { authentikEnabledState } from '@/client-config/states/authentikEnabledState';
 import { apiConfigState } from '@/client-config/states/apiConfigState';
 import { appVersionState } from '@/client-config/states/appVersionState';
 import { authProvidersState } from '@/client-config/states/authProvidersState';
@@ -126,6 +127,8 @@ export const useClientConfig = (): UseClientConfigResult => {
 
   const setAppVersion = useSetAtomState(appVersionState);
 
+  const setAuthentikEnabled = useSetAtomState(authentikEnabledState);
+
   const fetchClientConfig = useCallback(async () => {
     setClientConfigApiStatus((prev) => ({
       ...prev,
@@ -142,6 +145,9 @@ export const useClientConfig = (): UseClientConfigResult => {
         error: undefined,
         data: { clientConfig },
       }));
+      // Set authentik before any other atom so SignInUp never renders native
+      // auth UI after isLoadedOnce becomes true when the flag is on.
+      setAuthentikEnabled(clientConfig?.authentik?.enabled ?? false);
       setClientConfigApiStatus((currentStatus) => ({
         ...currentStatus,
         isErrored: false,
@@ -248,6 +254,7 @@ export const useClientConfig = (): UseClientConfigResult => {
     setSentryConfig,
     setSupportChat,
     setAllowRequestsToTwentyIcons,
+    setAuthentikEnabled,
   ]);
 
   return {

@@ -103,6 +103,8 @@ describe('ClientConfigService', () => {
             CLOUDFLARE_ZONE_ID: undefined,
             ALLOW_REQUESTS_TO_TWENTY_ICONS: false,
             CLICKHOUSE_URL: undefined,
+            WORKSPACE_SCHEMA_DDL_LOCKED: false,
+            AUTHENTIK_HEADER_AUTH_ENABLED: false,
           };
 
           return mockValues[key];
@@ -176,6 +178,10 @@ describe('ClientConfigService', () => {
         calendarBookingPageId: 'team/twenty/talk-to-us',
         isCloudflareIntegrationEnabled: false,
         isClickHouseConfigured: false,
+        isWorkspaceSchemaDDLLocked: false,
+        authentik: {
+          enabled: false,
+        },
       });
     });
 

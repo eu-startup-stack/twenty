@@ -10,6 +10,11 @@ import {
   type Support,
 } from '~/generated-metadata/graphql';
 
+// TODO: regenerate via npx nx run twenty-front:graphql:generate after server schema change
+type AuthentikClientConfig = {
+  enabled: boolean;
+};
+
 export type ClientConfig = {
   appVersion?: string;
   aiModels: Array<ClientAiModelConfig>;
@@ -42,4 +47,5 @@ export type ClientConfig = {
   isTwoFactorAuthenticationEnabled: boolean;
   allowRequestsToTwentyIcons: boolean;
   maintenance?: ClientConfigMaintenanceMode;
+  authentik: AuthentikClientConfig;
 };

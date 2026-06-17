@@ -251,6 +251,9 @@ export class ClientConfigService {
       isWorkspaceSchemaDDLLocked: this.twentyConfigService.get(
         'WORKSPACE_SCHEMA_DDL_LOCKED',
       ),
+      authentik: {
+        enabled: this.twentyConfigService.get('AUTHENTIK_HEADER_AUTH_ENABLED'),
+      },
     };
 
     const maintenanceMode =

@@ -19,11 +19,12 @@ import { SignInUpWorkspaceScopeForm } from '@/auth/sign-in-up/components/SignInU
 import { WorkspaceSelectionFooter } from '@/auth/sign-in-up/components/WorkspaceSelectionFooter';
 import { SignInUpSSOIdentityProviderSelection } from '@/auth/sign-in-up/components/internal/SignInUpSSOIdentityProviderSelection';
 import { SignInUpWorkspaceScopeFormEffect } from '@/auth/sign-in-up/components/internal/SignInUpWorkspaceScopeFormEffect';
+import { authentikEnabledState } from '@/client-config/states/authentikEnabledState';
 import { isMultiWorkspaceEnabledState } from '@/client-config/states/isMultiWorkspaceEnabledState';
 import { useGetPublicWorkspaceDataByDomain } from '@/domain-manager/hooks/useGetPublicWorkspaceDataByDomain';
 import { useIsCurrentLocationOnAWorkspace } from '@/domain-manager/hooks/useIsCurrentLocationOnAWorkspace';
 import { useIsCurrentLocationOnDefaultDomain } from '@/domain-manager/hooks/useIsCurrentLocationOnDefaultDomain';
-import { type JSX, useMemo } from 'react';
+import { type JSX, useEffect, useMemo } from 'react';
 
 import { SignInUpGlobalScopeFormEffect } from '@/auth/sign-in-up/components/internal/SignInUpGlobalScopeFormEffect';
 import { SignInUpTwoFactorAuthenticationProvision } from '@/auth/sign-in-up/components/internal/SignInUpTwoFactorAuthenticationProvision';
@@ -101,8 +102,16 @@ export const SignInUp = () => {
   const isMultiWorkspaceEnabled = useAtomStateValue(
     isMultiWorkspaceEnabledState,
   );
+  const authentikEnabled = useAtomStateValue(authentikEnabledState);
   const { workspaceInviteHash, workspace: workspaceFromInviteHash } =
     useWorkspaceFromInviteHash();
+
+  // authentik redirect is a mount-time side effect, not state
+  useEffect(() => {
+    if (authentikEnabled) {
+      window.location.assign('/auth/authentik');
+    }
+  }, [authentikEnabled]);
 
   const [searchParams] = useSearchParams();
 
@@ -113,6 +122,10 @@ export const SignInUp = () => {
   const isGlobalScope = isDefaultDomain && isMultiWorkspaceEnabled;
 
   const title = useMemo(() => {
+    if (authentikEnabled) {
+      return t`Redirecting to single sign-on…`;
+    }
+
     if (isDefined(workspaceInviteHash)) {
       const workspaceName = workspaceFromInviteHash?.displayName ?? '';
       return t`Join ${workspaceName} team`;
@@ -146,6 +159,7 @@ export const SignInUp = () => {
 
     return t`Welcome, ${workspaceName}.`;
   }, [
+    authentikEnabled,
     workspaceInviteHash,
     signInUpStep,
     workspacePublicData?.displayName,
@@ -156,6 +170,14 @@ export const SignInUp = () => {
 
   const signInUpForm = useMemo(() => {
     if (getPublicWorkspaceDataLoading || !clientConfigApiStatus.isLoadedOnce) {
+      return (
+        <StyledLoaderContainer>
+          <Loader color="gray" />
+        </StyledLoaderContainer>
+      );
+    }
+
+    if (authentikEnabled) {
       return (
         <StyledLoaderContainer>
           <Loader color="gray" />
@@ -203,6 +225,7 @@ export const SignInUp = () => {
       </>
     );
   }, [
+    authentikEnabled,
     clientConfigApiStatus.isLoadedOnce,
     isDefaultDomain,
     isMultiWorkspaceEnabled,

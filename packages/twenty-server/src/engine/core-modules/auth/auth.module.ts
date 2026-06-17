@@ -17,6 +17,8 @@ import { MicrosoftAPIsAuthController } from 'src/engine/core-modules/auth/contro
 import { MicrosoftAuthController } from 'src/engine/core-modules/auth/controllers/microsoft-auth.controller';
 import { OAuthPropagatorController } from 'src/engine/core-modules/auth/controllers/oauth-propagator.controller';
 import { SSOAuthController } from 'src/engine/core-modules/auth/controllers/sso-auth.controller';
+import { AuthentikHeaderAuthController } from 'src/engine/core-modules/auth/controllers/authentik-header-auth.controller';
+import { AuthentikAuthService } from 'src/engine/core-modules/auth/services/authentik-auth.service';
 import { AuthSsoService } from 'src/engine/core-modules/auth/services/auth-sso.service';
 import { CreateCalendarChannelService } from 'src/engine/core-modules/auth/services/create-calendar-channel.service';
 import { CreateConnectedAccountService } from 'src/engine/core-modules/auth/services/create-connected-account.service';
@@ -66,6 +68,8 @@ import { ConnectedAccountTokenEncryptionModule } from 'src/engine/metadata-modul
 import { MessageChannelEntity } from 'src/engine/metadata-modules/message-channel/entities/message-channel.entity';
 import { ObjectMetadataEntity } from 'src/engine/metadata-modules/object-metadata/object-metadata.entity';
 import { PermissionsModule } from 'src/engine/metadata-modules/permissions/permissions.module';
+import { RoleModule } from 'src/engine/metadata-modules/role/role.module';
+import { UserRoleModule } from 'src/engine/metadata-modules/user-role/user-role.module';
 import { WorkspaceCacheModule } from 'src/engine/workspace-cache/workspace-cache.module';
 import { CalendarChannelSyncStatusService } from 'src/modules/calendar/common/services/calendar-channel-sync-status.service';
 import { EmailAliasManagerModule } from 'src/modules/connected-account/email-alias-manager/email-alias-manager.module';
@@ -77,6 +81,19 @@ import { AuthResolver } from './auth.resolver';
 
 import { AuthService } from './services/auth.service';
 import { JwtAuthStrategy } from './strategies/jwt.auth.strategy';
+
+// Conditionally register AuthentikAuthService and AuthentikHeaderAuthController
+// so they are only wired when the feature flag is on. When off, neither the
+// service nor the controller exist in the DI container and the route 404s.
+const authentikProviders =
+  process.env.AUTHENTIK_HEADER_AUTH_ENABLED === 'true'
+    ? [AuthentikAuthService]
+    : [];
+
+const authentikControllers =
+  process.env.AUTHENTIK_HEADER_AUTH_ENABLED === 'true'
+    ? [AuthentikHeaderAuthController]
+    : [];
 
 @Module({
   imports: [
@@ -111,6 +128,8 @@ import { JwtAuthStrategy } from './strategies/jwt.auth.strategy';
     GuardRedirectModule,
     MetricsModule,
     PermissionsModule,
+    RoleModule,
+    UserRoleModule,
     TwoFactorAuthenticationModule,
     ApiKeyModule,
     EventLogEmitterModule,
@@ -136,6 +155,7 @@ import { JwtAuthStrategy } from './strategies/jwt.auth.strategy';
     OAuthPropagatorController,
     SSOAuthController,
     ConnectionProviderOAuthController,
+    ...authentikControllers,
   ],
   providers: [
     SignInUpService,
@@ -163,6 +183,7 @@ import { JwtAuthStrategy } from './strategies/jwt.auth.strategy';
     UpdateConnectedAccountOnReconnectService,
     TransientTokenService,
     AuthSsoService,
+    ...authentikProviders,
   ],
   exports: [
     AccessTokenService,
