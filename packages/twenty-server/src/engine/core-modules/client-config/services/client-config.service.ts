@@ -160,20 +160,7 @@ export class ClientConfigService {
       billing: {
         isBillingEnabled: this.twentyConfigService.get('IS_BILLING_ENABLED'),
         billingUrl: this.twentyConfigService.get('BILLING_PLAN_REQUIRED_LINK'),
-        trialPeriods: [
-          {
-            duration: this.twentyConfigService.get(
-              'BILLING_FREE_TRIAL_WITH_CREDIT_CARD_DURATION_IN_DAYS',
-            ),
-            isCreditCardRequired: true,
-          },
-          {
-            duration: this.twentyConfigService.get(
-              'BILLING_FREE_TRIAL_WITHOUT_CREDIT_CARD_DURATION_IN_DAYS',
-            ),
-            isCreditCardRequired: false,
-          },
-        ],
+        trialPeriods: [],
       },
       aiModels,
       authProviders: {
@@ -181,7 +168,6 @@ export class ClientConfigService {
         magicLink: false,
         password: this.twentyConfigService.get('AUTH_PASSWORD_ENABLED'),
         microsoft: this.twentyConfigService.get('AUTH_MICROSOFT_ENABLED'),
-        sso: [],
       },
       signInPrefilled: this.twentyConfigService.get('SIGN_IN_PREFILLED'),
       isMultiWorkspaceEnabled: this.twentyConfigService.get(

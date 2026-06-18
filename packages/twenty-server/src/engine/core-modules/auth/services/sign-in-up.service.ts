@@ -39,7 +39,6 @@ import {
   type SignInUpNewUserPayload,
 } from 'src/engine/core-modules/auth/types/signInUp.type';
 import { SubdomainManagerService } from 'src/engine/core-modules/domain/subdomain-manager/services/subdomain-manager.service';
-import { EnterprisePlanService } from 'src/engine/core-modules/enterprise/services/enterprise-plan.service';
 import { FileCorePictureService } from 'src/engine/core-modules/file/file-core-picture/services/file-core-picture.service';
 import { MetricsService } from 'src/engine/core-modules/metrics/metrics.service';
 import { MetricsKeys } from 'src/engine/core-modules/metrics/types/metrics-keys.type';
@@ -80,7 +79,6 @@ export class SignInUpService {
     private readonly workspaceCacheService: WorkspaceCacheService,
     private readonly applicationService: ApplicationService,
     private readonly fileCorePictureService: FileCorePictureService,
-    private readonly enterprisePlanService: EnterprisePlanService,
     private readonly eventLogEmitterService: EventLogEmitterService,
     @InjectDataSource()
     private readonly dataSource: DataSource,
@@ -478,10 +476,6 @@ export class SignInUpService {
   private async assertWorkspaceCountWithinLimit(
     workspaceCount: number,
   ): Promise<void> {
-    if (this.enterprisePlanService.isValid()) {
-      return;
-    }
-
     if (workspaceCount < MAX_WORKSPACES_WITHOUT_ENTERPRISE_KEY) {
       return;
     }

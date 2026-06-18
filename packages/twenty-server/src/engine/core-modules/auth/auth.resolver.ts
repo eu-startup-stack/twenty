@@ -2,7 +2,6 @@ import { UseFilters, UseGuards, UsePipes } from '@nestjs/common';
 import { Args, Context, Mutation, Query } from '@nestjs/graphql';
 import { InjectRepository } from '@nestjs/typeorm';
 
-import omit from 'lodash.omit';
 import { PermissionFlagType } from 'twenty-shared/constants';
 import { SOURCE_LOCALE } from 'twenty-shared/translations';
 import { TwoFactorAuthenticationStrategy } from 'twenty-shared/types';
@@ -26,8 +25,6 @@ import { AvailableWorkspacesAndAccessTokensDTO } from 'src/engine/core-modules/a
 import { EmailPasswordResetLinkDTO } from 'src/engine/core-modules/auth/dto/email-password-reset-link.dto';
 import { EmailPasswordResetLinkInput } from 'src/engine/core-modules/auth/dto/email-password-reset-link.input';
 import { GetAuthTokenFromEmailVerificationTokenInput } from 'src/engine/core-modules/auth/dto/get-auth-token-from-email-verification-token.input';
-import { GetAuthorizationUrlForSSODTO } from 'src/engine/core-modules/auth/dto/get-authorization-url-for-sso.dto';
-import { GetAuthorizationUrlForSSOInput } from 'src/engine/core-modules/auth/dto/get-authorization-url-for-sso.input';
 import { InvalidatePasswordDTO } from 'src/engine/core-modules/auth/dto/invalidate-password.dto';
 import { SignUpDTO } from 'src/engine/core-modules/auth/dto/sign-up.dto';
 import { TransientTokenDTO } from 'src/engine/core-modules/auth/dto/transient-token.dto';
@@ -60,7 +57,6 @@ import { EmailVerificationService } from 'src/engine/core-modules/email-verifica
 import { PreventNestToAutoLogGraphqlErrorsFilter } from 'src/engine/core-modules/graphql/filters/prevent-nest-to-auto-log-graphql-errors.filter';
 import { ResolverValidationPipe } from 'src/engine/core-modules/graphql/pipes/resolver-validation.pipe';
 import { I18nContext } from 'src/engine/core-modules/i18n/types/i18n-context.type';
-import { SSOService } from 'src/engine/core-modules/sso/services/sso.service';
 import { TwoFactorAuthenticationVerificationInput } from 'src/engine/core-modules/two-factor-authentication/dto/two-factor-authentication-verification.input';
 import { TwoFactorAuthenticationExceptionFilter } from 'src/engine/core-modules/two-factor-authentication/two-factor-authentication-exception.filter';
 import { TwoFactorAuthenticationService } from 'src/engine/core-modules/two-factor-authentication/two-factor-authentication.service';
@@ -130,7 +126,6 @@ export class AuthResolver {
     private workspaceDomainsService: WorkspaceDomainsService,
     private userWorkspaceService: UserWorkspaceService,
     private emailVerificationTokenService: EmailVerificationTokenService,
-    private ssoService: SSOService,
     private readonly eventLogEmitterService: EventLogEmitterService,
     private readonly permissionsService: PermissionsService,
     private readonly subdomainManagerService: SubdomainManagerService,
@@ -143,17 +138,6 @@ export class AuthResolver {
   ): Promise<CheckUserExistDTO> {
     return await this.authService.checkUserExists(
       checkUserExistsInput.email.toLowerCase(),
-    );
-  }
-
-  @Mutation(() => GetAuthorizationUrlForSSODTO)
-  @UseGuards(PublicEndpointGuard, NoPermissionGuard)
-  async getAuthorizationUrlForSSO(
-    @Args('input') params: GetAuthorizationUrlForSSOInput,
-  ) {
-    return await this.ssoService.getAuthorizationUrlForSSO(
-      params.identityProviderId,
-      omit(params, ['identityProviderId']),
     );
   }
 
@@ -221,18 +205,7 @@ export class AuthResolver {
     const user =
       await this.authService.validateLoginWithPassword(userCredentials);
 
-    const availableWorkspaces =
-      await this.userWorkspaceService.findAvailableWorkspacesByEmail(
-        user.email,
-      );
-
     return {
-      availableWorkspaces:
-        await this.userWorkspaceService.setLoginTokenToAvailableWorkspacesWhenAuthProviderMatch(
-          availableWorkspaces,
-          user,
-          AuthProviderEnum.Password,
-        ),
       tokens: {
         accessOrWorkspaceAgnosticToken:
           await this.workspaceAgnosticTokenService.generateWorkspaceAgnosticToken(
@@ -321,18 +294,7 @@ export class AuthResolver {
 
     await this.appTokenRepository.remove(appToken);
 
-    const availableWorkspaces =
-      await this.userWorkspaceService.findAvailableWorkspacesByEmail(
-        user.email,
-      );
-
     return {
-      availableWorkspaces:
-        await this.userWorkspaceService.setLoginTokenToAvailableWorkspacesWhenAuthProviderMatch(
-          availableWorkspaces,
-          user,
-          authProvider,
-        ),
       tokens: {
         accessOrWorkspaceAgnosticToken:
           await this.workspaceAgnosticTokenService.generateWorkspaceAgnosticToken(
@@ -394,11 +356,6 @@ export class AuthResolver {
       },
     );
 
-    const availableWorkspaces =
-      await this.userWorkspaceService.findAvailableWorkspacesByEmail(
-        user.email,
-      );
-
     await this.emailVerificationService.sendVerificationEmail({
       userId: user.id,
       email: user.email,
@@ -409,12 +366,6 @@ export class AuthResolver {
     });
 
     return {
-      availableWorkspaces:
-        await this.userWorkspaceService.setLoginTokenToAvailableWorkspacesWhenAuthProviderMatch(
-          availableWorkspaces,
-          user,
-          AuthProviderEnum.Password,
-        ),
       tokens: {
         accessOrWorkspaceAgnosticToken:
           await this.workspaceAgnosticTokenService.generateWorkspaceAgnosticToken(

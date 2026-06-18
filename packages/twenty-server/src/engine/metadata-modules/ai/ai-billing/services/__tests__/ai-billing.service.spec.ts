@@ -1,20 +1,11 @@
 import { Test, type TestingModule } from '@nestjs/testing';
 
-import { USAGE_RECORDED } from 'src/engine/core-modules/usage/constants/usage-recorded.constant';
-import { UsageOperationType } from 'src/engine/core-modules/usage/enums/usage-operation-type.enum';
-import { UsageResourceType } from 'src/engine/core-modules/usage/enums/usage-resource-type.enum';
-import { UsageUnit } from 'src/engine/core-modules/usage/enums/usage-unit.enum';
-import { BillingService } from 'src/engine/core-modules/billing/services/billing.service';
-import { BillingUsageService } from 'src/engine/core-modules/billing/services/billing-usage.service';
 import { AiBillingService } from 'src/engine/metadata-modules/ai/ai-billing/services/ai-billing.service';
 import { ModelFamily } from 'src/engine/metadata-modules/ai/ai-models/types/model-family.enum';
 import { AiModelRegistryService } from 'src/engine/metadata-modules/ai/ai-models/services/ai-model-registry.service';
-import { WorkspaceCacheService } from 'src/engine/workspace-cache/services/workspace-cache.service';
-import { WorkspaceEventEmitter } from 'src/engine/workspace-event-emitter/workspace-event-emitter';
 
 describe('AiBillingService', () => {
   let service: AiBillingService;
-  let mockWorkspaceEventEmitter: jest.Mocked<WorkspaceEventEmitter>;
   let mockAiModelRegistryService: jest.Mocked<
     Pick<AiModelRegistryService, 'getEffectiveModelConfig'>
   >;
@@ -33,7 +24,7 @@ describe('AiBillingService', () => {
     modelId: 'claude-sonnet-4-5-20250929',
     label: 'Claude Sonnet 4.5',
     modelFamily: ModelFamily.CLAUDE,
-    sdkPackage: '@ai-sdk/anthropic',
+    sdkPackage: '@anthropic-ai/sdk',
     inputCostPerMillionTokens: 3.0,
     outputCostPerMillionTokens: 15.0,
     cachedInputCostPerMillionTokens: 0.3,
@@ -57,10 +48,6 @@ describe('AiBillingService', () => {
   };
 
   beforeEach(async () => {
-    const mockEventEmitterMethods = {
-      emitCustomBatchEvent: jest.fn(),
-    };
-
     const mockAiModelRegistryMethods = {
       getEffectiveModelConfig: jest.fn().mockReturnValue(openaiModelConfig),
     };
@@ -69,42 +56,13 @@ describe('AiBillingService', () => {
       providers: [
         AiBillingService,
         {
-          provide: WorkspaceEventEmitter,
-          useValue: mockEventEmitterMethods,
-        },
-        {
           provide: AiModelRegistryService,
           useValue: mockAiModelRegistryMethods,
-        },
-        {
-          provide: BillingService,
-          useValue: {
-            isBillingEnabled: jest.fn().mockReturnValue(false),
-          },
-        },
-        {
-          provide: BillingUsageService,
-          useValue: {
-            decrementAvailableCreditsInCache: jest
-              .fn()
-              .mockResolvedValue(undefined),
-          },
-        },
-        {
-          provide: WorkspaceCacheService,
-          useValue: {
-            getOrRecompute: jest.fn().mockResolvedValue({
-              currentBillingSubscription: {
-                currentPeriodStart: new Date('2026-04-01T00:00:00Z'),
-              },
-            }),
-          },
         },
       ],
     }).compile();
 
     service = module.get<AiBillingService>(AiBillingService);
-    mockWorkspaceEventEmitter = module.get(WorkspaceEventEmitter);
     mockAiModelRegistryService = module.get(AiModelRegistryService);
   });
 
@@ -355,34 +313,15 @@ describe('AiBillingService', () => {
     });
   });
 
-  describe('calculateAndBillUsage', () => {
-    it('should calculate cost and emit billing event when model exists', async () => {
-      await service.calculateAndBillUsage(
+  describe('decrementAndCheckAvailableCredits', () => {
+    it('should return hasNoMoreAvailableCredits: false in the AGPL build', async () => {
+      const result = await service.decrementAndCheckAvailableCredits(
         'gpt-4o',
         { usage: mockTokenUsage },
         'workspace-1',
-        UsageOperationType.AI_CHAT_TOKEN,
-        'agent-id-123',
       );
 
-      expect(
-        mockWorkspaceEventEmitter.emitCustomBatchEvent,
-      ).toHaveBeenCalledWith(
-        USAGE_RECORDED,
-        [
-          {
-            resourceType: UsageResourceType.AI,
-            operationType: UsageOperationType.AI_CHAT_TOKEN,
-            creditsUsedMicro: 7500,
-            quantity: 1500,
-            unit: UsageUnit.TOKEN,
-            resourceId: 'agent-id-123',
-            resourceContext: 'gpt-4o',
-            userWorkspaceId: null,
-          },
-        ],
-        'workspace-1',
-      );
+      expect(result).toEqual({ hasNoMoreAvailableCredits: false });
     });
   });
 });

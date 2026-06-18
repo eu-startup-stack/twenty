@@ -150,14 +150,6 @@ const SettingsSubdomainPage = lazy(() =>
   })),
 );
 
-const SettingsCustomDomainPage = lazy(() =>
-  import('~/pages/settings/domains/SettingsCustomDomainPage').then(
-    (module) => ({
-      default: module.SettingsCustomDomainPage,
-    }),
-  ),
-);
-
 const SettingsApiWebhooks = lazy(() =>
   import('~/pages/settings/api-webhooks/SettingsApiWebhooks').then(
     (module) => ({
@@ -435,14 +427,6 @@ const SettingsObjectFieldEdit = lazy(() =>
   ),
 );
 
-const SettingsSecuritySSOIdentifyProvider = lazy(() =>
-  import('~/pages/settings/security/SettingsSecuritySSOIdentifyProvider').then(
-    (module) => ({
-      default: module.SettingsSecuritySSOIdentifyProvider,
-    }),
-  ),
-);
-
 const SettingsSecurityApprovedAccessDomain = lazy(() =>
   import('~/pages/settings/security/SettingsSecurityApprovedAccessDomain').then(
     (module) => ({
@@ -673,10 +657,6 @@ export const SettingsRoutes = ({ isAdminPageEnabled }: SettingsRoutesProps) => (
         <Route
           path={SettingsPath.Subdomain}
           element={<SettingsSubdomainPage />}
-        />
-        <Route
-          path={SettingsPath.CustomDomain}
-          element={<SettingsCustomDomainPage />}
         />
         <Route
           path={SettingsPath.PublicDomain}
@@ -918,10 +898,6 @@ export const SettingsRoutes = ({ isAdminPageEnabled }: SettingsRoutesProps) => (
           />
         }
       >
-        <Route
-          path={SettingsPath.NewSSOIdentityProvider}
-          element={<SettingsSecuritySSOIdentifyProvider />}
-        />
         <Route
           path={SettingsPath.NewApprovedAccessDomain}
           element={<SettingsSecurityApprovedAccessDomain />}

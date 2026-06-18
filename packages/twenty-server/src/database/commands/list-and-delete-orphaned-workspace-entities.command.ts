@@ -11,15 +11,11 @@ import {
 import { ApiKeyEntity } from 'src/engine/core-modules/api-key/api-key.entity';
 import { ApplicationEntity } from 'src/engine/core-modules/application/application.entity';
 import { ApprovedAccessDomainEntity } from 'src/engine/core-modules/approved-access-domain/approved-access-domain.entity';
-import { BillingCustomerEntity } from 'src/engine/core-modules/billing/entities/billing-customer.entity';
-import { BillingEntitlementEntity } from 'src/engine/core-modules/billing/entities/billing-entitlement.entity';
-import { BillingSubscriptionEntity } from 'src/engine/core-modules/billing/entities/billing-subscription.entity';
 import { EmailingDomainEntity } from 'src/engine/core-modules/emailing-domain/emailing-domain.entity';
 import { MessageSuppressionEntity } from 'src/engine/core-modules/emailing-domain/message-suppression.entity';
 import { FeatureFlagEntity } from 'src/engine/core-modules/feature-flag/feature-flag.entity';
 import { FileEntity } from 'src/engine/core-modules/file/entities/file.entity';
 import { PublicDomainEntity } from 'src/engine/core-modules/public-domain/public-domain.entity';
-import { WorkspaceSSOIdentityProviderEntity } from 'src/engine/core-modules/sso/workspace-sso-identity-provider.entity';
 import { UserWorkspaceEntity } from 'src/engine/core-modules/user-workspace/user-workspace.entity';
 import { WebhookEntity } from 'src/engine/metadata-modules/webhook/entities/webhook.entity';
 import { WorkspaceEntity } from 'src/engine/core-modules/workspace/workspace.entity';
@@ -37,8 +33,6 @@ import { RolePermissionFlagEntity } from 'src/engine/metadata-modules/role-permi
 import { PermissionFlagEntity } from 'src/engine/metadata-modules/permission-flag/permission-flag.entity';
 import { RoleTargetEntity } from 'src/engine/metadata-modules/role-target/role-target.entity';
 import { RoleEntity } from 'src/engine/metadata-modules/role/role.entity';
-import { RowLevelPermissionPredicateGroupEntity } from 'src/engine/metadata-modules/row-level-permission-predicate/entities/row-level-permission-predicate-group.entity';
-import { RowLevelPermissionPredicateEntity } from 'src/engine/metadata-modules/row-level-permission-predicate/entities/row-level-permission-predicate.entity';
 import { SearchFieldMetadataEntity } from 'src/engine/metadata-modules/search-field-metadata/search-field-metadata.entity';
 import { LogicFunctionLayerEntity } from 'src/engine/metadata-modules/logic-function-layer/logic-function-layer.entity';
 import { LogicFunctionEntity } from 'src/engine/metadata-modules/logic-function/logic-function.entity';
@@ -71,11 +65,9 @@ const WORKSPACE_RELATED_ENTITIES: EntityTarget<ObjectLiteral>[] = [
   RolePermissionFlagEntity,
   RoleTargetEntity,
   SearchFieldMetadataEntity,
-  RowLevelPermissionPredicateEntity,
   PageLayoutWidgetEntity,
 
   // Level 3: Mid-level children
-  RowLevelPermissionPredicateGroupEntity,
   ViewEntity,
   IndexMetadataEntity,
   PageLayoutTabEntity,
@@ -98,9 +90,6 @@ const WORKSPACE_RELATED_ENTITIES: EntityTarget<ObjectLiteral>[] = [
   // Level 0: Independent entities (no foreign keys to other workspace entities)
   ApplicationEntity,
   ApprovedAccessDomainEntity,
-  BillingCustomerEntity,
-  BillingEntitlementEntity,
-  BillingSubscriptionEntity,
   DataSourceEntity,
   EmailingDomainEntity,
   MessageSuppressionEntity,
@@ -108,7 +97,6 @@ const WORKSPACE_RELATED_ENTITIES: EntityTarget<ObjectLiteral>[] = [
   FileEntity,
   PublicDomainEntity,
   WebhookEntity,
-  WorkspaceSSOIdentityProviderEntity,
 ];
 
 type OrphanedRecord = {

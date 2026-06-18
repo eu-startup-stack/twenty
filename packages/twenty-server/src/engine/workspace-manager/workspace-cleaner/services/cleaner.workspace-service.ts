@@ -12,9 +12,6 @@ import { isDefined } from 'twenty-shared/utils';
 import { WorkspaceActivationStatus } from 'twenty-shared/workspace';
 import { In, Repository } from 'typeorm';
 
-import { BillingSubscriptionEntity } from 'src/engine/core-modules/billing/entities/billing-subscription.entity';
-import { SubscriptionStatus } from 'src/engine/core-modules/billing/enums/billing-subscription-status.enum';
-import { BillingSubscriptionService } from 'src/engine/core-modules/billing/services/billing-subscription.service';
 import { EmailService } from 'src/engine/core-modules/email/email.service';
 import { I18nService } from 'src/engine/core-modules/i18n/i18n.service';
 import { MetricsService } from 'src/engine/core-modules/metrics/metrics.service';
@@ -25,8 +22,6 @@ import { UserService } from 'src/engine/core-modules/user/services/user.service'
 import { UserVarsService } from 'src/engine/core-modules/user/user-vars/services/user-vars.service';
 import { WorkspaceService } from 'src/engine/core-modules/workspace/services/workspace.service';
 import { WorkspaceEntity } from 'src/engine/core-modules/workspace/workspace.entity';
-import { InjectWorkspaceScopedRepository } from 'src/engine/twenty-orm/workspace-scoped-repository/inject-workspace-scoped-repository.decorator';
-import { WorkspaceScopedRepository } from 'src/engine/twenty-orm/workspace-scoped-repository/workspace-scoped-repository';
 import { USER_WORKSPACE_DELETION_WARNING_SENT_KEY } from 'src/engine/workspace-manager/workspace-cleaner/constants/user-workspace-deletion-warning-sent-key.constant';
 import { WorkspaceMemberWorkspaceEntity } from 'src/modules/workspace-member/standard-objects/workspace-member.workspace-entity';
 
@@ -60,9 +55,6 @@ export class CleanerWorkspaceService {
     private readonly emailService: EmailService,
     @InjectRepository(WorkspaceEntity)
     private readonly workspaceRepository: Repository<WorkspaceEntity>,
-    @InjectWorkspaceScopedRepository(BillingSubscriptionEntity)
-    private readonly billingSubscriptionRepository: WorkspaceScopedRepository<BillingSubscriptionEntity>,
-    private readonly billingSubscriptionService: BillingSubscriptionService,
     @InjectRepository(UserWorkspaceEntity)
     private readonly userWorkspaceRepository: Repository<UserWorkspaceEntity>,
     private readonly i18nService: I18nService,
@@ -230,11 +222,16 @@ export class CleanerWorkspaceService {
     daysSinceInactive: number,
     dryRun: boolean,
   ) {
-    if (isDefined(workspace.deletedAt)) {
+      if (isDefined(workspace.deletedAt)) {
+        this.logger.warn(
+          `${dryRun ? 'DRY RUN - ' : ''}Workspace ${workspace.id} is not soft deleted, skipping`,
+        );
+
+        continue;
+      }
+
       this.logger.log(
-        `${dryRun ? 'DRY RUN - ' : ''}Workspace ${workspace.id} ${
-          workspace.displayName
-        } already soft deleted`,
+        `${dryRun ? 'DRY RUN - ' : ''}Destroying workspace ${workspace.id}`,
       );
 
       return;
@@ -314,21 +311,9 @@ export class CleanerWorkspaceService {
               );
             }
 
-            if (this.twentyConfigService.get('IS_BILLING_ENABLED')) {
-              await this.billingSubscriptionService.cancelSubscription(
-                workspace.id,
-              );
-            }
-
             await this.workspaceService.deleteWorkspace(workspace.id, true);
           }
         } else {
-          if (this.twentyConfigService.get('IS_BILLING_ENABLED')) {
-            await this.billingSubscriptionService.assertSubscriptionCanceledOrNone(
-              workspace.id,
-            );
-          }
-
           this.logger.log(
             `${dryRun ? 'DRY RUN - ' : ''}Hard deleting onboarding workspace ${workspace.id}`,
           );

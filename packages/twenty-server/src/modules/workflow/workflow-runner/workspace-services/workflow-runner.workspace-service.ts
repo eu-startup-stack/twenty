@@ -5,7 +5,6 @@ import { type ActorMetadata } from 'twenty-shared/types';
 import { isDefined } from 'twenty-shared/utils';
 import { StepStatus } from 'twenty-shared/workflow';
 
-import { BillingUsageService } from 'src/engine/core-modules/billing/services/billing-usage.service';
 import { InjectMessageQueue } from 'src/engine/core-modules/message-queue/decorators/message-queue.decorator';
 import { MessageQueue } from 'src/engine/core-modules/message-queue/message-queue.constants';
 import { MessageQueueService } from 'src/engine/core-modules/message-queue/services/message-queue.service';
@@ -45,7 +44,6 @@ export class WorkflowRunnerWorkspaceService {
     private readonly workflowCommonWorkspaceService: WorkflowCommonWorkspaceService,
     @InjectMessageQueue(MessageQueue.workflowQueue)
     private readonly messageQueueService: MessageQueueService,
-    private readonly billingUsageService: BillingUsageService,
     private readonly workflowVersionStepOperationsWorkspaceService: WorkflowVersionStepOperationsWorkspaceService,
     private readonly workflowThrottlingWorkspaceService: WorkflowThrottlingWorkspaceService,
     private readonly metricsService: MetricsService,
@@ -64,15 +62,6 @@ export class WorkflowRunnerWorkspaceService {
     source: ActorMetadata;
     workflowRunId?: string;
   }) {
-    const canFeatureBeUsed =
-      await this.billingUsageService.canFeatureBeUsed(workspaceId);
-
-    if (!canFeatureBeUsed) {
-      this.logger.log(
-        'Cannot execute billed function, there is no subscription for this workspace',
-      );
-    }
-
     const workflowVersion =
       await this.workflowCommonWorkspaceService.getWorkflowVersionOrFail({
         workspaceId,

@@ -6,7 +6,6 @@ import { isDefined } from 'twenty-shared/utils';
 import { WorkspaceActivationStatus } from 'twenty-shared/workspace';
 import { type QueryRunner, Repository } from 'typeorm';
 
-import { BillingService } from 'src/engine/core-modules/billing/services/billing.service';
 import { OnboardingStatus } from 'src/engine/core-modules/onboarding/enums/onboarding-status.enum';
 import { TwentyConfigService } from 'src/engine/core-modules/twenty-config/twenty-config.service';
 import { UserVarsService } from 'src/engine/core-modules/user/user-vars/services/user-vars.service';
@@ -30,7 +29,6 @@ export type OnboardingKeyValueTypeMap = {
 @Injectable()
 export class OnboardingService {
   constructor(
-    private readonly billingService: BillingService,
     private readonly userVarsService: UserVarsService<OnboardingKeyValueTypeMap>,
     private readonly twentyConfigService: TwentyConfigService,
     @InjectRepository(WorkspaceEntity)
@@ -60,14 +58,6 @@ export class OnboardingService {
 
     if (!isDefined(workspace)) {
       return null;
-    }
-
-    if (
-      await this.billingService.isSubscriptionIncompleteOnboardingStatus(
-        workspace.id,
-      )
-    ) {
-      return OnboardingStatus.PLAN_REQUIRED;
     }
 
     if (this.isWorkspaceActivationPending(workspace)) {

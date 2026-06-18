@@ -8,7 +8,6 @@ import { CoreEntityCacheModule } from 'src/engine/core-entity-cache/core-entity-
 import { ApprovedAccessDomainModule } from 'src/engine/core-modules/approved-access-domain/approved-access-domain.module';
 import { TokenModule } from 'src/engine/core-modules/auth/token/token.module';
 import { WorkspaceDomainsModule } from 'src/engine/core-modules/domain/workspace-domains/workspace-domains.module';
-import { EnterpriseModule } from 'src/engine/core-modules/enterprise/enterprise.module';
 import { FeatureFlagModule } from 'src/engine/core-modules/feature-flag/feature-flag.module';
 import { FileModule } from 'src/engine/core-modules/file/file.module';
 import { OnboardingModule } from 'src/engine/core-modules/onboarding/onboarding.module';
@@ -51,7 +50,6 @@ import { WorkspaceDataSourceModule } from 'src/engine/workspace-datasource/works
         TokenModule,
         PermissionsModule,
         OnboardingModule,
-        EnterpriseModule,
         FeatureFlagModule,
         CoreEntityCacheModule,
       ],

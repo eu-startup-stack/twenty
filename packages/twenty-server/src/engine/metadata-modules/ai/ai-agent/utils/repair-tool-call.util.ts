@@ -9,7 +9,6 @@ import {
 } from 'ai';
 import { type z } from 'zod';
 
-import { UsageOperationType } from 'src/engine/core-modules/usage/enums/usage-operation-type.enum';
 import { AiBillingService } from 'src/engine/metadata-modules/ai/ai-billing/services/ai-billing.service';
 import { extractCacheCreationTokensFromSteps } from 'src/engine/metadata-modules/ai/ai-billing/utils/extract-cache-creation-tokens.util';
 import { AI_TELEMETRY_CONFIG } from 'src/engine/metadata-modules/ai/ai-models/constants/ai-telemetry.const';
@@ -23,10 +22,10 @@ type ToolCall = {
 
 type RepairToolCallBillingContext = {
   aiBillingService: AiBillingService;
-  modelId: string;
+  modelId: ModelId;
   workspaceId: string;
-  userWorkspaceId: string | null;
-  operationType: UsageOperationType;
+  userWorkspaceId?: string;
+  operationType: string;
 };
 
 export const repairToolCall = async ({

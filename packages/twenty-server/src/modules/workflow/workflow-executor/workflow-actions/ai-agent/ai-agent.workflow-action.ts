@@ -4,7 +4,6 @@ import { resolveInput } from 'twenty-shared/utils';
 
 import { type WorkflowAction } from 'src/modules/workflow/workflow-executor/interfaces/workflow-action.interface';
 
-import { UsageOperationType } from 'src/engine/core-modules/usage/enums/usage-operation-type.enum';
 import { AgentAsyncExecutorService } from 'src/engine/metadata-modules/ai/ai-agent-execution/services/agent-async-executor.service';
 import { type AgentExecutionResult } from 'src/engine/metadata-modules/ai/ai-agent-execution/types/agent-execution-result.type';
 import { AgentEntity } from 'src/engine/metadata-modules/ai/ai-agent/entities/agent.entity';
@@ -90,7 +89,6 @@ export class AiAgentWorkflowAction implements WorkflowAction {
       authContext: executionContext.authContext,
       workspaceId,
       userWorkspaceId,
-      operationType: UsageOperationType.AI_WORKFLOW_TOKEN,
     });
 
     const durationMs = Date.now() - startedAtMs;

@@ -8,22 +8,12 @@ import {
   WorkflowRunStepInfos,
 } from 'twenty-shared/workflow';
 
-import { NO_BILLING_SUBSCRIPTION } from 'src/engine/core-modules/billing/constants/no-billing-subscription.constant';
-import { BillingUsageService } from 'src/engine/core-modules/billing/services/billing-usage.service';
-import { BillingService } from 'src/engine/core-modules/billing/services/billing.service';
 import { ExceptionHandlerService } from 'src/engine/core-modules/exception-handler/exception-handler.service';
 import { InjectMessageQueue } from 'src/engine/core-modules/message-queue/decorators/message-queue.decorator';
 import { MessageQueue } from 'src/engine/core-modules/message-queue/message-queue.constants';
 import { MessageQueueService } from 'src/engine/core-modules/message-queue/services/message-queue.service';
 import { MetricsService } from 'src/engine/core-modules/metrics/metrics.service';
 import { MetricsKeys } from 'src/engine/core-modules/metrics/types/metrics-keys.type';
-import { USAGE_RECORDED } from 'src/engine/core-modules/usage/constants/usage-recorded.constant';
-import { UsageOperationType } from 'src/engine/core-modules/usage/enums/usage-operation-type.enum';
-import { UsageResourceType } from 'src/engine/core-modules/usage/enums/usage-resource-type.enum';
-import { UsageUnit } from 'src/engine/core-modules/usage/enums/usage-unit.enum';
-import { type UsageEvent } from 'src/engine/core-modules/usage/types/usage-event.type';
-import { WorkspaceCacheService } from 'src/engine/workspace-cache/services/workspace-cache.service';
-import { WorkspaceEventEmitter } from 'src/engine/workspace-event-emitter/workspace-event-emitter';
 import { WorkflowRunStatus } from 'src/modules/workflow/common/standard-objects/workflow-run.workspace-entity';
 import { workflowHasRunningSteps } from 'src/modules/workflow/common/utils/workflow-has-running-steps.util';
 import {
@@ -57,11 +47,7 @@ const MAX_EXECUTED_STEPS_COUNT = 20;
 export class WorkflowExecutorWorkspaceService {
   constructor(
     private readonly workflowActionFactory: WorkflowActionFactory,
-    private readonly workspaceEventEmitter: WorkspaceEventEmitter,
     private readonly workflowRunWorkspaceService: WorkflowRunWorkspaceService,
-    private readonly billingService: BillingService,
-    private readonly billingUsageService: BillingUsageService,
-    private readonly workspaceCacheService: WorkspaceCacheService,
     private readonly exceptionHandlerService: ExceptionHandlerService,
     private readonly metricsService: MetricsService,
     @InjectMessageQueue(MessageQueue.workflowQueue)
@@ -184,7 +170,8 @@ export class WorkflowExecutorWorkspaceService {
       !actionOutput.shouldFailSafely &&
       !actionOutput.shouldSkipStepExecution
     ) {
-      await this.sendWorkflowNodeRunEvent(workspaceId, workflowRun.workflowId);
+      // Workflow node run tracking was tied to Enterprise usage events.
+      // Intentionally no-op in the AGPL build.
     }
 
     const { shouldProcessNextSteps } = await this.processStepExecutionResult({
@@ -320,44 +307,6 @@ export class WorkflowExecutorWorkspaceService {
       workspaceId,
       status: WorkflowRunStatus.COMPLETED,
     });
-  }
-
-  private async sendWorkflowNodeRunEvent(
-    workspaceId: string,
-    workflowId: string,
-  ) {
-    let periodStart: Date | undefined;
-    if (this.billingService.isBillingEnabled()) {
-      const { currentBillingSubscription } =
-        await this.workspaceCacheService.getOrRecompute(workspaceId, [
-          'currentBillingSubscription',
-        ]);
-
-      if (currentBillingSubscription !== NO_BILLING_SUBSCRIPTION) {
-        periodStart = currentBillingSubscription.currentPeriodStart;
-
-        await this.billingUsageService.decrementAvailableCreditsInCache({
-          workspaceId,
-          usedCredits: 100,
-        });
-      }
-    }
-
-    this.workspaceEventEmitter.emitCustomBatchEvent<UsageEvent>(
-      USAGE_RECORDED,
-      [
-        {
-          resourceType: UsageResourceType.WORKFLOW,
-          operationType: UsageOperationType.WORKFLOW_EXECUTION,
-          creditsUsedMicro: 100,
-          quantity: 1,
-          unit: UsageUnit.INVOCATION,
-          resourceId: workflowId,
-          periodStart,
-        },
-      ],
-      workspaceId,
-    );
   }
 
   private async processStepExecutionResult({

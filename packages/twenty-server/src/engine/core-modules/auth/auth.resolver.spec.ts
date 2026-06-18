@@ -14,7 +14,6 @@ import { SubdomainManagerService } from 'src/engine/core-modules/domain/subdomai
 import { WorkspaceDomainsService } from 'src/engine/core-modules/domain/workspace-domains/services/workspace-domains.service';
 import { EmailVerificationService } from 'src/engine/core-modules/email-verification/services/email-verification.service';
 import { FeatureFlagService } from 'src/engine/core-modules/feature-flag/services/feature-flag.service';
-import { SSOService } from 'src/engine/core-modules/sso/services/sso.service';
 import { TwentyConfigService } from 'src/engine/core-modules/twenty-config/twenty-config.service';
 import { TwoFactorAuthenticationService } from 'src/engine/core-modules/two-factor-authentication/two-factor-authentication.service';
 import { UserWorkspaceEntity } from 'src/engine/core-modules/user-workspace/user-workspace.entity';
@@ -126,10 +125,6 @@ describe('AuthResolver', () => {
         },
         {
           provide: FeatureFlagService,
-          useValue: {},
-        },
-        {
-          provide: SSOService,
           useValue: {},
         },
         {

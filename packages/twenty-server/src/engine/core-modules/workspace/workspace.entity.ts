@@ -30,7 +30,6 @@ import { FeatureFlagEntity } from 'src/engine/core-modules/feature-flag/feature-
 import { FileEntity } from 'src/engine/core-modules/file/entities/file.entity';
 import { KeyValuePairEntity } from 'src/engine/core-modules/key-value-pair/key-value-pair.entity';
 import { PublicDomainEntity } from 'src/engine/core-modules/public-domain/public-domain.entity';
-import { WorkspaceSSOIdentityProviderEntity } from 'src/engine/core-modules/sso/workspace-sso-identity-provider.entity';
 import { UserWorkspaceEntity } from 'src/engine/core-modules/user-workspace/user-workspace.entity';
 import { AgentEntity } from 'src/engine/metadata-modules/ai/ai-agent/entities/agent.entity';
 import { type ModelId } from 'src/engine/metadata-modules/ai/ai-models/types/model-id.type';
@@ -178,12 +177,6 @@ export class WorkspaceEntity {
 
   @Column({ type: 'timestamptz', nullable: true })
   suspendedAt: Date | null;
-
-  @OneToMany(
-    () => WorkspaceSSOIdentityProviderEntity,
-    (workspaceSSOIdentityProviders) => workspaceSSOIdentityProviders.workspace,
-  )
-  workspaceSSOIdentityProviders: Relation<WorkspaceSSOIdentityProviderEntity[]>;
 
   @OneToMany(() => AgentEntity, (agent) => agent.workspace, {
     onDelete: 'CASCADE',

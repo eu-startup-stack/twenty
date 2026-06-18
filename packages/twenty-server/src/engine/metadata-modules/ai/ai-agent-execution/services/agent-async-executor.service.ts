@@ -17,10 +17,8 @@ import { type Repository } from 'typeorm';
 
 import { isUserAuthContext } from 'src/engine/core-modules/auth/guards/is-user-auth-context.guard';
 import { type WorkspaceAuthContext } from 'src/engine/core-modules/auth/types/workspace-auth-context.type';
-import { BillingUsageService } from 'src/engine/core-modules/billing/services/billing-usage.service';
 import { type ToolProviderContext } from 'src/engine/core-modules/tool-provider/interfaces/tool-provider-context.type';
 import { ToolRegistryService } from 'src/engine/core-modules/tool-provider/services/tool-registry.service';
-import { UsageOperationType } from 'src/engine/core-modules/usage/enums/usage-operation-type.enum';
 import { WorkspaceEntity } from 'src/engine/core-modules/workspace/workspace.entity';
 import { WORKFLOW_AGENT_REGISTRY_TOOL_CATEGORIES } from 'src/engine/metadata-modules/ai/ai-agent-execution/constants/workflow-agent-registry-tool-categories.const';
 import { type AgentExecutionResult } from 'src/engine/metadata-modules/ai/ai-agent-execution/types/agent-execution-result.type';
@@ -30,7 +28,6 @@ import { type AgentEntity } from 'src/engine/metadata-modules/ai/ai-agent/entiti
 import { repairToolCall } from 'src/engine/metadata-modules/ai/ai-agent/utils/repair-tool-call.util';
 import { NATIVE_WEB_SEARCH_COST_PER_CALL_DOLLARS } from 'src/engine/metadata-modules/ai/ai-billing/constants/native-web-search-cost-per-call-dollars';
 import { AiBillingService } from 'src/engine/metadata-modules/ai/ai-billing/services/ai-billing.service';
-import { convertDollarsToBillingCredits } from 'src/engine/metadata-modules/ai/ai-billing/utils/convert-dollars-to-billing-credits.util';
 import { countNativeWebSearchCallsFromSteps } from 'src/engine/metadata-modules/ai/ai-billing/utils/count-native-web-search-calls-from-steps.util';
 import {
   extractCacheCreationTokens,
@@ -79,7 +76,6 @@ export class AgentAsyncExecutorService {
     private readonly toolRegistry: ToolRegistryService,
     private readonly nativeToolBinder: NativeToolBinderService,
     private readonly aiBillingService: AiBillingService,
-    private readonly billingUsageService: BillingUsageService,
     @InjectWorkspaceScopedRepository(RoleTargetEntity)
     private readonly roleTargetRepository: WorkspaceScopedRepository<RoleTargetEntity>,
     @InjectRepository(WorkspaceEntity)
@@ -107,7 +103,6 @@ export class AgentAsyncExecutorService {
     authContext,
     workspaceId,
     userWorkspaceId,
-    operationType = UsageOperationType.AI_WORKFLOW_TOKEN,
   }: {
     agent: AgentEntity | null;
     userPrompt: string;
@@ -115,10 +110,7 @@ export class AgentAsyncExecutorService {
     authContext?: WorkspaceAuthContext;
     workspaceId: string;
     userWorkspaceId?: string | null;
-    operationType?: UsageOperationType;
   }): Promise<AgentExecutionResult> {
-    await this.billingUsageService.hasAvailableCreditsOrThrow(workspaceId);
-
     let accumulatedUsage: LanguageModelUsage = EMPTY_USAGE;
     let cacheCreationTokens = 0;
     let nativeWebSearchCallCount = 0;
@@ -323,9 +315,7 @@ export class AgentAsyncExecutorService {
       const totalCostInDollars =
         tokenCostInDollars +
         nativeWebSearchCallCount * NATIVE_WEB_SEARCH_COST_PER_CALL_DOLLARS;
-      const creditsUsedMicro = Math.round(
-        convertDollarsToBillingCredits(totalCostInDollars),
-      );
+      const creditsUsedMicro = Math.round(totalCostInDollars * 1_000_000);
 
       return {
         result,
@@ -352,9 +342,7 @@ export class AgentAsyncExecutorService {
         usage: accumulatedUsage,
         cacheCreationTokens,
       });
-      const creditsUsedMicro = Math.round(
-        convertDollarsToBillingCredits(costInDollars),
-      );
+      const creditsUsedMicro = Math.round(costInDollars * 1_000_000);
       const totalTokens =
         (accumulatedUsage.inputTokens ?? 0) +
         (accumulatedUsage.outputTokens ?? 0) +
@@ -365,7 +353,7 @@ export class AgentAsyncExecutorService {
         creditsUsedMicro,
         totalTokens,
         modelId,
-        operationType,
+        'AI_WORKFLOW_TOKEN',
         agent?.id ?? null,
         userWorkspaceId,
       );

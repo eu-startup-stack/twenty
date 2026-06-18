@@ -7,7 +7,6 @@ import { Repository } from 'typeorm';
 import { type QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
 
 import { ApplicationEntity } from 'src/engine/core-modules/application/application.entity';
-import { DnsManagerService } from 'src/engine/core-modules/dns-manager/services/dns-manager.service';
 import { PublicDomainDTO } from 'src/engine/core-modules/public-domain/dtos/public-domain.dto';
 import { PublicDomainEntity } from 'src/engine/core-modules/public-domain/public-domain.entity';
 import {
@@ -15,13 +14,12 @@ import {
   PublicDomainExceptionCode,
 } from 'src/engine/core-modules/public-domain/public-domain.exception';
 import { WorkspaceEntity } from 'src/engine/core-modules/workspace/workspace.entity';
-import { DomainValidRecords } from 'src/engine/core-modules/dns-manager/dtos/domain-valid-records';
 import { InjectWorkspaceScopedRepository } from 'src/engine/twenty-orm/workspace-scoped-repository/inject-workspace-scoped-repository.decorator';
 import { WorkspaceScopedRepository } from 'src/engine/twenty-orm/workspace-scoped-repository/workspace-scoped-repository';
+
 @Injectable()
 export class PublicDomainService {
   constructor(
-    private readonly dnsManagerService: DnsManagerService,
     @InjectWorkspaceScopedRepository(PublicDomainEntity)
     private readonly publicDomainRepository: WorkspaceScopedRepository<PublicDomainEntity>,
     // Hostname-to-workspace resolution at request-routing time, before workspace context exists.
@@ -42,10 +40,6 @@ export class PublicDomainService {
     workspace: WorkspaceEntity;
   }): Promise<void> {
     const formattedDomain = domain.trim().toLowerCase();
-
-    await this.dnsManagerService.deleteHostnameSilently(formattedDomain, {
-      isPublicDomain: true,
-    });
 
     await this.publicDomainRepository.delete(workspace.id, {
       domain: formattedDomain,
@@ -110,22 +104,10 @@ export class PublicDomainService {
       applicationId,
     } as PublicDomainEntity;
 
-    await this.dnsManagerService.registerHostname(formattedDomain, {
-      isPublicDomain: true,
-    });
-
-    try {
-      await this.publicDomainRepository.insert(
-        workspace.id,
-        publicDomain as QueryDeepPartialEntity<PublicDomainEntity>,
-      );
-    } catch (error) {
-      await this.dnsManagerService.deleteHostnameSilently(formattedDomain, {
-        isPublicDomain: true,
-      });
-
-      throw error;
-    }
+    await this.publicDomainRepository.insert(
+      workspace.id,
+      publicDomain as QueryDeepPartialEntity<PublicDomainEntity>,
+    );
 
     return publicDomain;
   }
@@ -172,28 +154,9 @@ export class PublicDomainService {
     return this.publicDomainRepository.save(workspace.id, publicDomain);
   }
 
-  async checkPublicDomainValidRecords(
-    publicDomain: PublicDomainEntity,
-    domainValidRecords?: DomainValidRecords,
-  ): Promise<DomainValidRecords | undefined> {
-    const publicDomainWithRecords =
-      domainValidRecords ??
-      (await this.dnsManagerService.getHostnameWithRecords(
-        publicDomain.domain,
-        {
-          isPublicDomain: true,
-        },
-      ));
-
-    if (!publicDomainWithRecords) return;
-
-    const isCustomDomainWorking =
-      await this.dnsManagerService.isHostnameWorking(publicDomain.domain, {
-        isPublicDomain: true,
-      });
-
-    if (publicDomain.isValidated !== isCustomDomainWorking) {
-      publicDomain.isValidated = isCustomDomainWorking;
+  async checkPublicDomainValidRecords(publicDomain: PublicDomainEntity) {
+    if (publicDomain.isValidated !== true) {
+      publicDomain.isValidated = true;
 
       await this.publicDomainRepository.save(
         publicDomain.workspaceId,
@@ -201,7 +164,7 @@ export class PublicDomainService {
       );
     }
 
-    return publicDomainWithRecords;
+    return publicDomain;
   }
 
   async findByDomain(domain: string) {

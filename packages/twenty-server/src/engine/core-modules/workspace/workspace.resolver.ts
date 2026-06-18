@@ -20,14 +20,8 @@ import { ApplicationService } from 'src/engine/core-modules/application/applicat
 import { ApplicationDTO } from 'src/engine/core-modules/application/dtos/application.dto';
 import { fromFlatApplicationToApplicationDto } from 'src/engine/core-modules/application/utils/from-flat-application-to-application-dto.util';
 import { type AuthContextUser } from 'src/engine/core-modules/auth/types/auth-context.type';
-import { BillingEntitlementDTO } from 'src/engine/core-modules/billing/dtos/billing-entitlement.dto';
-import { BillingSubscriptionEntity } from 'src/engine/core-modules/billing/entities/billing-subscription.entity';
-import { BillingSubscriptionService } from 'src/engine/core-modules/billing/services/billing-subscription.service';
-import { DomainValidRecords } from 'src/engine/core-modules/dns-manager/dtos/domain-valid-records';
-import { DnsManagerService } from 'src/engine/core-modules/dns-manager/services/dns-manager.service';
 import { CustomDomainManagerService } from 'src/engine/core-modules/domain/custom-domain-manager/services/custom-domain-manager.service';
 import { WorkspaceDomainsService } from 'src/engine/core-modules/domain/workspace-domains/services/workspace-domains.service';
-import { EnterprisePlanService } from 'src/engine/core-modules/enterprise/services/enterprise-plan.service';
 import { FeatureFlagDTO } from 'src/engine/core-modules/feature-flag/dtos/feature-flag.dto';
 import { FeatureFlagService } from 'src/engine/core-modules/feature-flag/services/feature-flag.service';
 import { FileUrlService } from 'src/engine/core-modules/file/file-url/file-url.service';
@@ -91,14 +85,11 @@ export class WorkspaceResolver {
     private readonly userWorkspaceService: UserWorkspaceService,
     private readonly twentyConfigService: TwentyConfigService,
     private readonly fileUrlService: FileUrlService,
-    private readonly billingSubscriptionService: BillingSubscriptionService,
     private readonly featureFlagService: FeatureFlagService,
     private readonly roleService: RoleService,
     private readonly viewService: ViewService,
-    private readonly dnsManagerService: DnsManagerService,
     private readonly customDomainManagerService: CustomDomainManagerService,
     private readonly applicationService: ApplicationService,
-    private readonly enterprisePlanService: EnterprisePlanService,
   ) {}
 
   @Query(() => WorkspaceEntity)
@@ -171,23 +162,6 @@ export class WorkspaceResolver {
   async deleteCurrentWorkspace(@AuthWorkspace() { id }: WorkspaceEntity) {
     await this.workspaceService.suspendWorkspace(id);
     return this.workspaceService.deleteWorkspace(id, true);
-  }
-
-  @ResolveField(() => [BillingSubscriptionEntity])
-  async billingSubscriptions(
-    @Parent() workspace: WorkspaceEntity,
-  ): Promise<BillingSubscriptionEntity[] | undefined> {
-    if (!this.twentyConfigService.isBillingEnabled()) {
-      return [];
-    }
-
-    try {
-      return this.billingSubscriptionService.getBillingSubscriptions(
-        workspace.id,
-      );
-    } catch (error) {
-      workspaceGraphqlApiExceptionHandler(error);
-    }
   }
 
   @ResolveField(() => RoleDTO, { nullable: true })
@@ -269,19 +243,6 @@ export class WorkspaceResolver {
     return flatApplications.map(fromFlatApplicationToApplicationDto);
   }
 
-  @ResolveField(() => BillingSubscriptionEntity, { nullable: true })
-  async currentBillingSubscription(
-    @Parent() workspace: WorkspaceEntity,
-  ): Promise<BillingSubscriptionEntity | undefined> {
-    if (!this.twentyConfigService.isBillingEnabled()) {
-      return;
-    }
-
-    return this.billingSubscriptionService.getCurrentBillingSubscription({
-      workspaceId: workspace.id,
-    });
-  }
-
   @ResolveField(() => Number)
   async workspaceMembersCount(
     @Parent() workspace: WorkspaceEntity,
@@ -300,23 +261,6 @@ export class WorkspaceResolver {
       workspaceId: workspace.id,
       fileFolder: FileFolder.CorePicture,
     });
-  }
-
-  @ResolveField(() => [BillingEntitlementDTO])
-  billingEntitlements(@Parent() workspace: WorkspaceEntity) {
-    return this.billingSubscriptionService.getWorkspaceEntitlements(
-      workspace.id,
-    );
-  }
-
-  @ResolveField(() => Boolean)
-  hasValidSignedEnterpriseKey(): boolean {
-    return this.enterprisePlanService.hasValidSignedEnterpriseKey();
-  }
-
-  @ResolveField(() => Boolean)
-  hasValidEnterpriseValidityToken(): boolean {
-    return this.enterprisePlanService.hasValidEnterpriseValidityToken();
   }
 
   @ResolveField(() => WorkspaceUrlsDTO)
@@ -374,7 +318,6 @@ export class WorkspaceResolver {
         magicLink: false,
         password: this.twentyConfigService.get('AUTH_PASSWORD_ENABLED'),
         microsoft: this.twentyConfigService.get('AUTH_MICROSOFT_ENABLED'),
-        sso: [],
       };
 
       if (!origin) {
@@ -457,31 +400,5 @@ export class WorkspaceResolver {
     } catch (err) {
       workspaceGraphqlApiExceptionHandler(err);
     }
-  }
-
-  @Mutation(() => DomainValidRecords, { nullable: true })
-  @UseGuards(
-    WorkspaceAuthGuard,
-    SettingsPermissionGuard(PermissionFlagType.WORKSPACE),
-  )
-  async checkCustomDomainValidRecords(
-    @AuthWorkspace() workspace: WorkspaceEntity,
-  ): Promise<DomainValidRecords | undefined> {
-    assertIsDefinedOrThrow(
-      workspace.customDomain,
-      new WorkspaceException(
-        `Custom domain not found`,
-        WorkspaceExceptionCode.CUSTOM_DOMAIN_NOT_FOUND,
-      ),
-    );
-
-    const domainValidRecords = await this.dnsManagerService.refreshHostname(
-      workspace.customDomain,
-    );
-
-    return this.customDomainManagerService.checkCustomDomainValidRecords(
-      workspace,
-      domainValidRecords,
-    );
   }
 }

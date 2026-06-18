@@ -1,8 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-import { BillingModule } from 'src/engine/core-modules/billing/billing.module';
-import { BillingSubscriptionEntity } from 'src/engine/core-modules/billing/entities/billing-subscription.entity';
 import { EmailModule } from 'src/engine/core-modules/email/email.module';
 import { MetricsModule } from 'src/engine/core-modules/metrics/metrics.module';
 import { UserWorkspaceEntity } from 'src/engine/core-modules/user-workspace/user-workspace.entity';
@@ -23,13 +21,11 @@ import { CleanerWorkspaceService } from 'src/engine/workspace-manager/workspace-
     TypeOrmModule.forFeature([
       WorkspaceEntity,
       UserWorkspaceEntity,
-      BillingSubscriptionEntity,
     ]),
     WorkspaceModule,
     UserVarsModule,
     UserModule,
     EmailModule,
-    BillingModule,
     MetricsModule,
   ],
   providers: [
@@ -39,7 +35,6 @@ import { CleanerWorkspaceService } from 'src/engine/workspace-manager/workspace-
     CleanOnboardingWorkspacesCommand,
     CleanOnboardingWorkspacesCronCommand,
     CleanerWorkspaceService,
-    provideWorkspaceScopedRepository(BillingSubscriptionEntity),
   ],
   exports: [
     CleanerWorkspaceService,

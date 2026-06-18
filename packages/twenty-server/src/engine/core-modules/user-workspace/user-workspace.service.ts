@@ -10,13 +10,11 @@ import { IsNull, Not, type QueryRunner, type Repository } from 'typeorm';
 import { CoreEntityCacheService } from 'src/engine/core-entity-cache/services/core-entity-cache.service';
 import { FileStorageExceptionCode } from 'src/engine/core-modules/file-storage/interfaces/file-storage-exception';
 
-import { type AppTokenEntity } from 'src/engine/core-modules/app-token/app-token.entity';
 import { ApprovedAccessDomainService } from 'src/engine/core-modules/approved-access-domain/services/approved-access-domain.service';
 import {
   AuthException,
   AuthExceptionCode,
 } from 'src/engine/core-modules/auth/auth.exception';
-import { type AvailableWorkspace } from 'src/engine/core-modules/auth/dto/available-workspaces.dto';
 import { LoginTokenService } from 'src/engine/core-modules/auth/token/services/login-token.service';
 import { WorkspaceDomainsService } from 'src/engine/core-modules/domain/workspace-domains/services/workspace-domains.service';
 import { FileCorePictureService } from 'src/engine/core-modules/file/file-core-picture/services/file-core-picture.service';
@@ -26,9 +24,7 @@ import { OnboardingService } from 'src/engine/core-modules/onboarding/onboarding
 import { UserWorkspaceEntity } from 'src/engine/core-modules/user-workspace/user-workspace.entity';
 import { UserEntity } from 'src/engine/core-modules/user/user.entity';
 import { WorkspaceInvitationService } from 'src/engine/core-modules/workspace-invitation/services/workspace-invitation.service';
-import { AuthProviderEnum } from 'src/engine/core-modules/workspace/types/workspace.type';
 import { type WorkspaceEntity } from 'src/engine/core-modules/workspace/workspace.entity';
-import { workspaceValidator } from 'src/engine/core-modules/workspace/workspace.validate';
 import {
   PermissionsException,
   PermissionsExceptionCode,
@@ -340,7 +336,6 @@ export class UserWorkspaceService extends TypeOrmQueryService<UserWorkspaceEntit
       relations: {
         userWorkspaces: {
           workspace: {
-            workspaceSSOIdentityProviders: true,
             approvedAccessDomains: true,
           },
         },
@@ -356,7 +351,7 @@ export class UserWorkspaceService extends TypeOrmQueryService<UserWorkspaceEntit
     );
 
     const workspacesFromApprovedAccessDomain = (
-      await this.approvedAccessDomainService.findValidatedApprovedAccessDomainWithWorkspacesAndSSOIdentityProvidersDomain(
+      await this.approvedAccessDomainService.findValidatedApprovedAccessDomainWithWorkspaces(
         getDomainFromEmailOrThrow(email),
       )
     )

@@ -4,18 +4,11 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { TypeORMModule } from 'src/database/typeorm/typeorm.module';
 import { AuthModule } from 'src/engine/core-modules/auth/auth.module';
-import { BillingModule } from 'src/engine/core-modules/billing/billing.module';
-import { BillingProductEntity } from 'src/engine/core-modules/billing/entities/billing-product.entity';
-import { BillingSubscriptionItemEntity } from 'src/engine/core-modules/billing/entities/billing-subscription-item.entity';
-import { BillingSubscriptionEntity } from 'src/engine/core-modules/billing/entities/billing-subscription.entity';
-import { UpdateSubscriptionQuantityJob } from 'src/engine/core-modules/billing/jobs/update-subscription-quantity.job';
-import { StripeModule } from 'src/engine/core-modules/billing/stripe/stripe.module';
 import { EmailSenderJob } from 'src/engine/core-modules/email/email-sender.job';
 import { EmailModule } from 'src/engine/core-modules/email/email.module';
 import { EmailingModule } from 'src/modules/emailing/emailing.module';
 import { MaterializeCampaignJob } from 'src/modules/emailing/jobs/materialize-campaign.job';
 import { SendCampaignEmailJob } from 'src/modules/emailing/jobs/send-campaign-email.job';
-import { EnterpriseModule } from 'src/engine/core-modules/enterprise/enterprise.module';
 import { EventLogIngestionModule } from 'src/engine/core-modules/event-logs/ingest/event-log-ingestion.module';
 import { FeatureFlagModule } from 'src/engine/core-modules/feature-flag/feature-flag.module';
 import { GenerateSdkClientJob } from 'src/engine/core-modules/sdk-client/jobs/generate-sdk-client.job';
@@ -50,16 +43,12 @@ import { WorkflowModule } from 'src/modules/workflow/workflow.module';
   imports: [
     TypeOrmModule.forFeature([
       WorkspaceEntity,
-      BillingSubscriptionEntity,
-      BillingSubscriptionItemEntity,
-      BillingProductEntity,
     ]),
     ObjectMetadataModule,
     TypeORMModule,
     UserModule,
     UserVarsModule,
     EmailModule,
-    BillingModule,
     UserWorkspaceModule,
     WorkspaceModule,
     AuthModule,
@@ -67,7 +56,6 @@ import { WorkflowModule } from 'src/modules/workflow/workflow.module';
     CalendarModule,
     CalendarEventParticipantManagerModule,
     TimelineActivityModule,
-    StripeModule,
     FeatureFlagModule,
     AutoCompaniesAndContactsCreationJobModule,
     TimelineJobModule,
@@ -81,7 +69,6 @@ import { WorkflowModule } from 'src/modules/workflow/workflow.module';
     AiAgentMonitorModule,
     AiChatModule,
     LogicFunctionModule,
-    EnterpriseModule,
     EmailingModule,
   ],
   providers: [
@@ -90,7 +77,6 @@ import { WorkflowModule } from 'src/modules/workflow/workflow.module';
     EmailSenderJob,
     SendCampaignEmailJob,
     MaterializeCampaignJob,
-    UpdateSubscriptionQuantityJob,
     HandleWorkspaceMemberDeletedJob,
     CleanWorkspaceDeletionWarningUserVarsJob,
     UpdateWorkspaceMemberEmailJob,

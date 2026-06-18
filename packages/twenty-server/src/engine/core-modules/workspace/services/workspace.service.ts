@@ -15,9 +15,6 @@ import { ApiKeyEntity } from 'src/engine/core-modules/api-key/api-key.entity';
 import { ApplicationService } from 'src/engine/core-modules/application/application.service';
 import { PreInstalledAppsService } from 'src/engine/core-modules/application/pre-installed-apps/pre-installed-apps.service';
 import { type AuthContextUser } from 'src/engine/core-modules/auth/types/auth-context.type';
-import { BillingSubscriptionService } from 'src/engine/core-modules/billing/services/billing-subscription.service';
-import { BillingService } from 'src/engine/core-modules/billing/services/billing.service';
-import { DnsManagerService } from 'src/engine/core-modules/dns-manager/services/dns-manager.service';
 import { CustomDomainManagerService } from 'src/engine/core-modules/domain/custom-domain-manager/services/custom-domain-manager.service';
 import { SubdomainManagerService } from 'src/engine/core-modules/domain/subdomain-manager/services/subdomain-manager.service';
 import { ExceptionHandlerService } from 'src/engine/core-modules/exception-handler/exception-handler.service';
@@ -117,13 +114,10 @@ export class WorkspaceService extends TypeOrmQueryService<WorkspaceEntity> {
     private readonly userWorkspaceRepository: Repository<UserWorkspaceEntity>,
     private readonly workspaceManagerService: WorkspaceManagerService,
     private readonly featureFlagService: FeatureFlagService,
-    private readonly billingSubscriptionService: BillingSubscriptionService,
-    private readonly billingService: BillingService,
     private readonly userWorkspaceService: UserWorkspaceService,
     private readonly twentyConfigService: TwentyConfigService,
     private readonly exceptionHandlerService: ExceptionHandlerService,
     private readonly permissionsService: PermissionsService,
-    private readonly dnsManagerService: DnsManagerService,
     private readonly flatEntityMapsCacheService: WorkspaceManyOrAllFlatEntityMapsCacheService,
     private readonly prefillLogicFunctionService: PrefillLogicFunctionService,
     private readonly applicationService: ApplicationService,
@@ -182,9 +176,6 @@ export class WorkspaceService extends TypeOrmQueryService<WorkspaceEntity> {
     let customDomainRegistered = false;
 
     if (payload.customDomain === null && isDefined(workspace.customDomain)) {
-      await this.dnsManagerService.deleteHostnameSilently(
-        workspace.customDomain,
-      );
       workspace.isCustomDomainEnabled = false;
     }
 
@@ -298,14 +289,6 @@ export class WorkspaceService extends TypeOrmQueryService<WorkspaceEntity> {
         ...payload,
       });
     } catch (error) {
-      // revert custom domain registration on error
-      if (payload.customDomain && customDomainRegistered) {
-        this.dnsManagerService
-          .deleteHostnameSilently(payload.customDomain)
-          .catch((err) => {
-            this.exceptionHandlerService.captureExceptions([err]);
-          });
-      }
       throw error;
     }
 
@@ -478,22 +461,12 @@ export class WorkspaceService extends TypeOrmQueryService<WorkspaceEntity> {
     this.logger.log(`workspace ${id} cache flushed`);
 
     if (softDelete) {
-      if (this.billingService.isBillingEnabled()) {
-        await this.billingSubscriptionService.cancelSubscription(workspace.id);
-      }
-
       await this.workspaceRepository.softDelete({ id });
       await this.coreEntityCacheService.invalidate('workspaceEntity', id);
 
       this.logger.log(`workspace ${id} soft deleted`);
 
       return workspace;
-    }
-
-    if (this.billingService.isBillingEnabled()) {
-      await this.billingSubscriptionService.assertSubscriptionCanceledOrNone(
-        workspace.id,
-      );
     }
 
     await this.deleteWorkspaceSyncableMetadataEntities(workspace);
@@ -526,9 +499,6 @@ export class WorkspaceService extends TypeOrmQueryService<WorkspaceEntity> {
     );
 
     if (workspace.customDomain) {
-      await this.dnsManagerService.deleteHostnameSilently(
-        workspace.customDomain,
-      );
       this.logger.log(`workspace ${id} custom domain deleted`);
     }
 

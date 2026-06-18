@@ -3,9 +3,6 @@ import { getDataSourceToken, getRepositoryToken } from '@nestjs/typeorm';
 
 import { type Repository } from 'typeorm';
 
-import { BillingSubscriptionService } from 'src/engine/core-modules/billing/services/billing-subscription.service';
-import { BillingService } from 'src/engine/core-modules/billing/services/billing.service';
-import { DnsManagerService } from 'src/engine/core-modules/dns-manager/services/dns-manager.service';
 import { CustomDomainManagerService } from 'src/engine/core-modules/domain/custom-domain-manager/services/custom-domain-manager.service';
 import { SubdomainManagerService } from 'src/engine/core-modules/domain/subdomain-manager/services/subdomain-manager.service';
 import { ExceptionHandlerService } from 'src/engine/core-modules/exception-handler/exception-handler.service';
@@ -43,8 +40,6 @@ describe('WorkspaceService', () => {
   let workspaceRepository: Repository<WorkspaceEntity>;
   let workspaceCacheStorageService: WorkspaceCacheStorageService;
   let messageQueueService: MessageQueueService;
-  let dnsManagerService: DnsManagerService;
-  let billingSubscriptionService: BillingSubscriptionService;
   let userWorkspaceService: UserWorkspaceService;
 
   beforeEach(async () => {
@@ -77,22 +72,8 @@ describe('WorkspaceService', () => {
             softDelete: jest.fn(),
           },
         },
-        {
-          provide: BillingService,
-          useValue: {
-            isBillingEnabled: jest.fn().mockReturnValue(true),
-          },
-        },
-        {
-          provide: BillingSubscriptionService,
-          useValue: {
-            cancelSubscription: jest.fn(),
-            assertSubscriptionCanceledOrNone: jest.fn(),
-          },
-        },
         ...[
           WorkspaceManagerService,
-          DnsManagerService,
           CustomDomainManagerService,
           SubdomainManagerService,
           TwentyConfigService,
@@ -187,11 +168,6 @@ describe('WorkspaceService', () => {
     );
     messageQueueService = module.get<MessageQueueService>(
       getQueueToken(MessageQueue.deleteCascadeQueue),
-    );
-    dnsManagerService = module.get<DnsManagerService>(DnsManagerService);
-    dnsManagerService.deleteHostnameSilently = jest.fn();
-    billingSubscriptionService = module.get<BillingSubscriptionService>(
-      BillingSubscriptionService,
     );
     userWorkspaceService =
       module.get<UserWorkspaceService>(UserWorkspaceService);
@@ -299,9 +275,6 @@ describe('WorkspaceService', () => {
 
       await service.deleteWorkspace(mockWorkspace.id, false);
 
-      expect(
-        billingSubscriptionService.assertSubscriptionCanceledOrNone,
-      ).toHaveBeenCalledWith(mockWorkspace.id);
       expect(workspaceCacheStorageService.flush).toHaveBeenCalledWith(
         mockWorkspace.id,
         mockWorkspace.metadataVersion,
@@ -324,16 +297,13 @@ describe('WorkspaceService', () => {
 
       await service.deleteWorkspace(mockWorkspace.id, true);
 
-      expect(
-        billingSubscriptionService.cancelSubscription,
-      ).toHaveBeenCalledWith(mockWorkspace.id);
       expect(workspaceRepository.softDelete).toHaveBeenCalledWith({
         id: mockWorkspace.id,
       });
       expect(workspaceRepository.delete).not.toHaveBeenCalled();
     });
 
-    it('should delete the custom domain when hard deleting a workspace with a custom domain', async () => {
+    it('should keep a custom domain value intact on hard delete (DNS cleanup was Enterprise-only)', async () => {
       const customDomain = 'custom.example.com';
       const mockWorkspace = {
         id: 'workspace-id',
@@ -348,12 +318,10 @@ describe('WorkspaceService', () => {
 
       await service.deleteWorkspace(mockWorkspace.id, false);
 
-      expect(dnsManagerService.deleteHostnameSilently).toHaveBeenCalledWith(
-        customDomain,
-      );
+      expect(workspaceRepository.delete).toHaveBeenCalledWith(mockWorkspace.id);
     });
 
-    it('should not delete the custom domain when soft deleting a workspace with a custom domain', async () => {
+    it('should soft delete a workspace that has a custom domain', async () => {
       const customDomain = 'custom.example.com';
       const mockWorkspace = {
         id: 'workspace-id',
@@ -368,7 +336,6 @@ describe('WorkspaceService', () => {
 
       await service.deleteWorkspace(mockWorkspace.id, true);
 
-      expect(dnsManagerService.deleteHostnameSilently).not.toHaveBeenCalled();
       expect(workspaceRepository.softDelete).toHaveBeenCalledWith({
         id: mockWorkspace.id,
       });

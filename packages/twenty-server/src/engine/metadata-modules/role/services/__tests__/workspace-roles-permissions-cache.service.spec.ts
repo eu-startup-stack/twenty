@@ -14,8 +14,6 @@ import { ObjectPermissionEntity } from 'src/engine/metadata-modules/object-permi
 import { RolePermissionFlagEntity } from 'src/engine/metadata-modules/role-permission-flag/role-permission-flag.entity';
 import { RoleEntity } from 'src/engine/metadata-modules/role/role.entity';
 import { WorkspaceRolesPermissionsCacheService } from 'src/engine/metadata-modules/role/services/workspace-roles-permissions-cache.service';
-import { RowLevelPermissionPredicateGroupEntity } from 'src/engine/metadata-modules/row-level-permission-predicate/entities/row-level-permission-predicate-group.entity';
-import { RowLevelPermissionPredicateEntity } from 'src/engine/metadata-modules/row-level-permission-predicate/entities/row-level-permission-predicate.entity';
 import { getWorkspaceScopedRepositoryToken } from 'src/engine/twenty-orm/workspace-scoped-repository/get-workspace-scoped-repository-token.util';
 import { type WorkspaceScopedRepository } from 'src/engine/twenty-orm/workspace-scoped-repository/workspace-scoped-repository';
 
@@ -47,8 +45,6 @@ const createBaseRole = (
     canBeAssignedToAgents: true,
     canBeAssignedToApiKeys: true,
     fieldPermissions: [],
-    rowLevelPermissionPredicates: [],
-    rowLevelPermissionPredicateGroups: [],
     ...overrides,
   }) as RoleEntity;
 
@@ -107,12 +103,6 @@ describe('WorkspaceRolesPermissionsCacheService', () => {
     const fieldPermissionRepository = {
       find: jest.fn().mockResolvedValue([]),
     };
-    const rowLevelPermissionPredicateRepository = {
-      find: jest.fn().mockResolvedValue([]),
-    };
-    const rowLevelPermissionPredicateGroupRepository = {
-      find: jest.fn().mockResolvedValue([]),
-    };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -136,18 +126,6 @@ describe('WorkspaceRolesPermissionsCacheService', () => {
         {
           provide: getWorkspaceScopedRepositoryToken(FieldPermissionEntity),
           useValue: fieldPermissionRepository,
-        },
-        {
-          provide: getWorkspaceScopedRepositoryToken(
-            RowLevelPermissionPredicateEntity,
-          ),
-          useValue: rowLevelPermissionPredicateRepository,
-        },
-        {
-          provide: getWorkspaceScopedRepositoryToken(
-            RowLevelPermissionPredicateGroupEntity,
-          ),
-          useValue: rowLevelPermissionPredicateGroupRepository,
         },
       ],
     }).compile();

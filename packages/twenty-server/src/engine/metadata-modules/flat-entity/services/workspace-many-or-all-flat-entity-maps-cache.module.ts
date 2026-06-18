@@ -14,8 +14,6 @@ import { WorkspaceFlatPageLayoutWidgetMapCacheService } from 'src/engine/metadat
 import { WorkspaceFlatPageLayoutMapCacheService } from 'src/engine/metadata-modules/flat-page-layout/services/workspace-flat-page-layout-map-cache.service';
 import { WorkspaceFlatPermissionFlagMapCacheService } from 'src/engine/metadata-modules/flat-permission-flag/services/workspace-flat-permission-flag-map-cache.service';
 import { WorkspaceFlatRolePermissionFlagMapCacheService } from 'src/engine/metadata-modules/flat-role-permission-flag/services/workspace-flat-role-permission-flag-map-cache.service';
-import { WorkspaceFlatRowLevelPermissionPredicateGroupMapCacheService } from 'src/engine/metadata-modules/flat-row-level-permission-predicate/services/workspace-flat-row-level-permission-predicate-group-map-cache.service';
-import { WorkspaceFlatRowLevelPermissionPredicateMapCacheService } from 'src/engine/metadata-modules/flat-row-level-permission-predicate/services/workspace-flat-row-level-permission-predicate-map-cache.service';
 import { WorkspaceFlatViewFieldGroupMapCacheService } from 'src/engine/metadata-modules/flat-view-field-group/services/workspace-flat-view-field-group-map-cache.service';
 import { WorkspaceFlatViewFieldMapCacheService } from 'src/engine/metadata-modules/flat-view-field/services/workspace-flat-view-field-map-cache.service';
 import { WorkspaceFlatViewFilterGroupMapCacheService } from 'src/engine/metadata-modules/flat-view-filter-group/services/workspace-flat-view-filter-group-map-cache.service';
@@ -35,8 +33,6 @@ import { PageLayoutEntity } from 'src/engine/metadata-modules/page-layout/entiti
 import { PermissionFlagEntity } from 'src/engine/metadata-modules/permission-flag/permission-flag.entity';
 import { RolePermissionFlagEntity } from 'src/engine/metadata-modules/role-permission-flag/role-permission-flag.entity';
 import { RoleEntity } from 'src/engine/metadata-modules/role/role.entity';
-import { RowLevelPermissionPredicateGroupEntity } from 'src/engine/metadata-modules/row-level-permission-predicate/entities/row-level-permission-predicate-group.entity';
-import { RowLevelPermissionPredicateEntity } from 'src/engine/metadata-modules/row-level-permission-predicate/entities/row-level-permission-predicate.entity';
 import { ViewFieldGroupEntity } from 'src/engine/metadata-modules/view-field-group/entities/view-field-group.entity';
 import { ViewFieldEntity } from 'src/engine/metadata-modules/view-field/entities/view-field.entity';
 import { ViewFilterGroupEntity } from 'src/engine/metadata-modules/view-filter-group/entities/view-filter-group.entity';
@@ -69,8 +65,6 @@ import { WorkspaceCacheModule } from 'src/engine/workspace-cache/workspace-cache
       PageLayoutWidgetEntity,
       RolePermissionFlagEntity,
       PermissionFlagEntity,
-      RowLevelPermissionPredicateEntity,
-      RowLevelPermissionPredicateGroupEntity,
       ApplicationEntity,
       RoleEntity,
       FrontComponentEntity,
@@ -95,8 +89,6 @@ import { WorkspaceCacheModule } from 'src/engine/workspace-cache/workspace-cache
     WorkspaceFlatPageLayoutMapCacheService,
     WorkspaceFlatPageLayoutTabMapCacheService,
     WorkspaceFlatPageLayoutWidgetMapCacheService,
-    WorkspaceFlatRowLevelPermissionPredicateMapCacheService,
-    WorkspaceFlatRowLevelPermissionPredicateGroupMapCacheService,
     provideWorkspaceScopedRepository(PermissionFlagEntity),
     provideWorkspaceScopedRepository(IndexMetadataEntity),
     provideWorkspaceScopedRepository(ViewEntity),
@@ -112,8 +104,6 @@ import { WorkspaceCacheModule } from 'src/engine/workspace-cache/workspace-cache
     provideWorkspaceScopedRepository(ObjectPermissionEntity),
     provideWorkspaceScopedRepository(FieldPermissionEntity),
     provideWorkspaceScopedRepository(RoleEntity),
-    provideWorkspaceScopedRepository(RowLevelPermissionPredicateEntity),
-    provideWorkspaceScopedRepository(RowLevelPermissionPredicateGroupEntity),
   ],
   exports: [
     WorkspaceManyOrAllFlatEntityMapsCacheService,
@@ -134,8 +124,6 @@ import { WorkspaceCacheModule } from 'src/engine/workspace-cache/workspace-cache
     WorkspaceFlatPageLayoutMapCacheService,
     WorkspaceFlatPageLayoutTabMapCacheService,
     WorkspaceFlatPageLayoutWidgetMapCacheService,
-    WorkspaceFlatRowLevelPermissionPredicateMapCacheService,
-    WorkspaceFlatRowLevelPermissionPredicateGroupMapCacheService,
   ],
 })
 export class WorkspaceManyOrAllFlatEntityMapsCacheModule {}

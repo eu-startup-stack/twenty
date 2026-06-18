@@ -98,7 +98,7 @@ describe('UserWorkspaceService', () => {
         {
           provide: ApprovedAccessDomainService,
           useValue: {
-            findValidatedApprovedAccessDomainWithWorkspacesAndSSOIdentityProvidersDomain:
+            findValidatedApprovedAccessDomainWithWorkspaces:
               jest.fn().mockResolvedValue([]),
           },
         },

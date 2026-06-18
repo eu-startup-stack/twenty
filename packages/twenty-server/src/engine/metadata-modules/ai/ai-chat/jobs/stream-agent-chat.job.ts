@@ -16,11 +16,9 @@ import { WorkspaceScopedRepository } from 'src/engine/twenty-orm/workspace-scope
 import { Process } from 'src/engine/core-modules/message-queue/decorators/process.decorator';
 import { Processor } from 'src/engine/core-modules/message-queue/decorators/processor.decorator';
 import { MessageQueue } from 'src/engine/core-modules/message-queue/message-queue.constants';
-import { toDisplayCredits } from 'src/engine/core-modules/usage/utils/to-display-credits.util';
 import { WorkspaceEntity } from 'src/engine/core-modules/workspace/workspace.entity';
 import { AgentMessageRole } from 'src/engine/metadata-modules/ai/ai-agent-execution/entities/agent-message.entity';
 import { computeCostBreakdown } from 'src/engine/metadata-modules/ai/ai-billing/utils/compute-cost-breakdown.util';
-import { convertDollarsToBillingCredits } from 'src/engine/metadata-modules/ai/ai-billing/utils/convert-dollars-to-billing-credits.util';
 import { extractCacheCreationTokens } from 'src/engine/metadata-modules/ai/ai-billing/utils/extract-cache-creation-tokens.util';
 import { AgentChatThreadEntity } from 'src/engine/metadata-modules/ai/ai-chat/entities/agent-chat-thread.entity';
 import { AgentChatCancelSubscriberService } from 'src/engine/metadata-modules/ai/ai-chat/services/agent-chat-cancel-subscriber.service';
@@ -401,10 +399,10 @@ export class StreamAgentChatJob {
       });
 
       const inputCredits = Math.round(
-        convertDollarsToBillingCredits(breakdown.inputCostInDollars),
+        breakdown.inputCostInDollars * 1_000_000,
       );
       const outputCredits = Math.round(
-        convertDollarsToBillingCredits(breakdown.outputCostInDollars),
+        breakdown.outputCostInDollars * 1_000_000,
       );
 
       onUpdateUsage({
@@ -421,8 +419,8 @@ export class StreamAgentChatJob {
           inputTokens: breakdown.tokenCounts.totalInputTokens,
           outputTokens: part.totalUsage?.outputTokens ?? 0,
           cachedInputTokens: breakdown.tokenCounts.cachedInputTokens,
-          inputCredits: toDisplayCredits(inputCredits),
-          outputCredits: toDisplayCredits(outputCredits),
+          inputCredits,
+          outputCredits,
           conversationSize: lastStepConversationSize,
         },
         model: {

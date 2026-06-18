@@ -7,8 +7,6 @@ import { PermissionFlagType } from 'twenty-shared/constants';
 import { InjectWorkspaceScopedRepository } from 'src/engine/twenty-orm/workspace-scoped-repository/inject-workspace-scoped-repository.decorator';
 import { WorkspaceScopedRepository } from 'src/engine/twenty-orm/workspace-scoped-repository/workspace-scoped-repository';
 import { MetadataResolver } from 'src/engine/api/graphql/graphql-config/decorators/metadata-resolver.decorator';
-import { DomainValidRecords } from 'src/engine/core-modules/dns-manager/dtos/domain-valid-records';
-import { DnsManagerService } from 'src/engine/core-modules/dns-manager/services/dns-manager.service';
 import { PreventNestToAutoLogGraphqlErrorsFilter } from 'src/engine/core-modules/graphql/filters/prevent-nest-to-auto-log-graphql-errors.filter';
 import { ResolverValidationPipe } from 'src/engine/core-modules/graphql/pipes/resolver-validation.pipe';
 import { CreatePublicDomainInput } from 'src/engine/core-modules/public-domain/dtos/create-public-domain.input';
@@ -42,7 +40,6 @@ export class PublicDomainResolver {
     @InjectWorkspaceScopedRepository(PublicDomainEntity)
     private readonly publicDomainRepository: WorkspaceScopedRepository<PublicDomainEntity>,
     private readonly publicDomainService: PublicDomainService,
-    private readonly dnsManagerService: DnsManagerService,
   ) {}
 
   @Query(() => [PublicDomainDTO])
@@ -89,11 +86,11 @@ export class PublicDomainResolver {
     return true;
   }
 
-  @Mutation(() => DomainValidRecords, { nullable: true })
+  @Mutation(() => Boolean)
   async checkPublicDomainValidRecords(
     @Args() { domain }: PublicDomainInput,
     @AuthWorkspace() workspace: WorkspaceEntity,
-  ): Promise<DomainValidRecords | undefined> {
+  ): Promise<boolean> {
     const publicDomain = await this.publicDomainRepository.findOne(
       workspace.id,
       { where: { domain } },
@@ -107,16 +104,8 @@ export class PublicDomainResolver {
       ),
     );
 
-    const domainValidRecords = await this.dnsManagerService.refreshHostname(
-      domain,
-      {
-        isPublicDomain: true,
-      },
-    );
+    await this.publicDomainService.checkPublicDomainValidRecords(publicDomain);
 
-    return this.publicDomainService.checkPublicDomainValidRecords(
-      publicDomain,
-      domainValidRecords,
-    );
+    return true;
   }
 }

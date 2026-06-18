@@ -7,7 +7,6 @@ import {
 
 import { ApplicationService } from 'src/engine/core-modules/application/application.service';
 import { type WorkspaceAuthContext } from 'src/engine/core-modules/auth/types/workspace-auth-context.type';
-import { UsageOperationType } from 'src/engine/core-modules/usage/enums/usage-operation-type.enum';
 import { type FlatWorkspace } from 'src/engine/core-modules/workspace/types/flat-workspace.type';
 import { AgentAsyncExecutorService } from 'src/engine/metadata-modules/ai/ai-agent-execution/services/agent-async-executor.service';
 import { AgentEntity } from 'src/engine/metadata-modules/ai/ai-agent/entities/agent.entity';
@@ -67,7 +66,6 @@ export class AgentRunService {
         authContext,
         workspaceId: workspace.id,
         userWorkspaceId: requestUserWorkspaceId,
-        operationType: UsageOperationType.AI_WORKFLOW_TOKEN,
       });
 
     if (hasNoMoreAvailableCredits) {

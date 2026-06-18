@@ -32,7 +32,6 @@ import { formatData } from 'src/engine/twenty-orm/utils/format-data.util';
 import { formatResult } from 'src/engine/twenty-orm/utils/format-result.util';
 import { formatTwentyOrmEventToDatabaseBatchEvent } from 'src/engine/twenty-orm/utils/format-twenty-orm-event-to-database-batch-event.util';
 import { getObjectMetadataFromEntityTarget } from 'src/engine/twenty-orm/utils/get-object-metadata-from-entity-target.util';
-import { validateRLSPredicatesForRecords } from 'src/engine/twenty-orm/utils/validate-rls-predicates-for-records.util';
 
 export class WorkspaceInsertQueryBuilder<
   T extends ObjectLiteral,
@@ -219,8 +218,6 @@ export class WorkspaceInsertQueryBuilder<
         this.expressionMap.valuesSet = updatedValues;
       }
 
-      this.validateRLSPredicatesForInsert();
-
       const result = await super.execute();
 
       if (isDefined(filesFieldFileIds)) {
@@ -316,33 +313,6 @@ export class WorkspaceInsertQueryBuilder<
         this.internalContext,
       );
     }
-  }
-
-  private validateRLSPredicatesForInsert(): void {
-    const mainAliasTarget = this.getMainAliasTarget();
-    const objectMetadata = getObjectMetadataFromEntityTarget(
-      mainAliasTarget,
-      this.internalContext,
-    );
-
-    const valuesToInsert = Array.isArray(this.expressionMap.valuesSet)
-      ? this.expressionMap.valuesSet
-      : [this.expressionMap.valuesSet];
-
-    const valuesToInsertFormatted = formatResult<T[]>(
-      valuesToInsert,
-      objectMetadata,
-      this.internalContext.flatObjectMetadataMaps,
-      this.internalContext.flatFieldMetadataMaps,
-    );
-
-    validateRLSPredicatesForRecords({
-      records: valuesToInsertFormatted,
-      objectMetadata,
-      internalContext: this.internalContext,
-      authContext: this.authContext,
-      shouldBypassPermissionChecks: this.shouldBypassPermissionChecks,
-    });
   }
 
   private getMainAliasTarget(): EntityTarget<T> {

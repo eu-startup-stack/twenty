@@ -7,8 +7,6 @@ import {
   generateText,
 } from 'ai';
 
-import { BillingUsageService } from 'src/engine/core-modules/billing/services/billing-usage.service';
-import { UsageOperationType } from 'src/engine/core-modules/usage/enums/usage-operation-type.enum';
 import { AiBillingService } from 'src/engine/metadata-modules/ai/ai-billing/services/ai-billing.service';
 import { extractCacheCreationTokensFromSteps } from 'src/engine/metadata-modules/ai/ai-billing/utils/extract-cache-creation-tokens.util';
 import { AI_TELEMETRY_CONFIG } from 'src/engine/metadata-modules/ai/ai-models/constants/ai-telemetry.const';
@@ -21,7 +19,6 @@ export class AgentTitleGenerationService {
   constructor(
     private readonly aiModelRegistryService: AiModelRegistryService,
     private readonly aiBillingService: AiBillingService,
-    private readonly billingUsageService: BillingUsageService,
   ) {}
 
   async generateThreadTitle(
@@ -29,8 +26,6 @@ export class AgentTitleGenerationService {
     workspaceId: string,
     userWorkspaceId: string | null,
   ): Promise<string> {
-    await this.billingUsageService.hasAvailableCreditsOrThrow(workspaceId);
-
     const defaultModel = this.aiModelRegistryService.getDefaultSpeedModel();
 
     if (!defaultModel) {
@@ -67,7 +62,7 @@ export class AgentTitleGenerationService {
           defaultModel.modelId,
           { usage, cacheCreationTokens },
           workspaceId,
-          UsageOperationType.AI_CHAT_TOKEN,
+          'AI_CHAT_TOKEN',
           null,
           userWorkspaceId,
         );

@@ -18,7 +18,6 @@ import { AdminPanelQueueService } from 'src/engine/core-modules/admin-panel/admi
 import { AdminChatThreadMessagesDTO } from 'src/engine/core-modules/admin-panel/dtos/admin-chat-thread-messages.dto';
 import { AdminPanelRecentUserDTO } from 'src/engine/core-modules/admin-panel/dtos/admin-panel-recent-user.dto';
 import { AdminPanelTopWorkspaceDTO } from 'src/engine/core-modules/admin-panel/dtos/admin-panel-top-workspace.dto';
-import { AdminPanelWorkspaceBillingDTO } from 'src/engine/core-modules/admin-panel/dtos/admin-panel-workspace-billing.dto';
 import { AdminWorkspaceChatThreadDTO } from 'src/engine/core-modules/admin-panel/dtos/admin-workspace-chat-thread.dto';
 import { ConfigVariableDTO } from 'src/engine/core-modules/admin-panel/dtos/config-variable.dto';
 import { ConfigVariablesDTO } from 'src/engine/core-modules/admin-panel/dtos/config-variables.dto';
@@ -39,7 +38,6 @@ import { HealthIndicatorId } from 'src/engine/core-modules/admin-panel/enums/hea
 import { JobStateEnum } from 'src/engine/core-modules/admin-panel/enums/job-state.enum';
 import { QueueMetricsTimeRange } from 'src/engine/core-modules/admin-panel/enums/queue-metrics-time-range.enum';
 import { MaintenanceModeService } from 'src/engine/core-modules/admin-panel/maintenance-mode.service';
-import { AdminPanelBillingService } from 'src/engine/core-modules/admin-panel/services/admin-panel-billing.service';
 import { AdminPanelChatService } from 'src/engine/core-modules/admin-panel/services/admin-panel-chat.service';
 import { AdminPanelConfigService } from 'src/engine/core-modules/admin-panel/services/admin-panel-config.service';
 import { AdminPanelSigningKeyService } from 'src/engine/core-modules/admin-panel/services/admin-panel-signing-key.service';
@@ -65,8 +63,6 @@ import { type ConfigVariables } from 'src/engine/core-modules/twenty-config/conf
 import { ConfigVariableGraphqlApiExceptionFilter } from 'src/engine/core-modules/twenty-config/filters/config-variable-graphql-api-exception.filter';
 import { TwentyConfigService } from 'src/engine/core-modules/twenty-config/twenty-config.service';
 import { TwoFactorAuthenticationExceptionFilter } from 'src/engine/core-modules/two-factor-authentication/two-factor-authentication-exception.filter';
-import { UsageBreakdownItemDTO } from 'src/engine/core-modules/usage/dtos/usage-breakdown-item.dto';
-import { UsageAnalyticsService } from 'src/engine/core-modules/usage/services/usage-analytics.service';
 import { WorkspaceEntity } from 'src/engine/core-modules/workspace/workspace.entity';
 import { AuthUser } from 'src/engine/decorators/auth/auth-user.decorator';
 import { AuthWorkspace } from 'src/engine/decorators/auth/auth-workspace.decorator';
@@ -112,7 +108,6 @@ export class AdminPanelResolver {
     private readonly adminUserLookupService: AdminPanelUserLookupService,
     private readonly adminServerAdminService: AdminPanelServerAdminService,
     private readonly adminStatisticsService: AdminPanelStatisticsService,
-    private readonly adminBillingService: AdminPanelBillingService,
     private readonly adminChatService: AdminPanelChatService,
     private readonly adminConfigService: AdminPanelConfigService,
     private readonly adminVersionService: AdminPanelVersionService,
@@ -127,7 +122,6 @@ export class AdminPanelResolver {
     private readonly aiModelPreferencesService: AiModelPreferencesService,
     private readonly defaultAiCatalogService: DefaultAiCatalogService,
     private readonly modelsDevCatalogService: ModelsDevCatalogService,
-    private readonly usageAnalyticsService: UsageAnalyticsService,
     private readonly maintenanceModeService: MaintenanceModeService,
     private readonly upgradeStatusService: UpgradeStatusService,
     @InjectRepository(WorkspaceEntity)
@@ -630,49 +624,6 @@ export class AdminPanelResolver {
   }
 
   @UseGuards(AdminPanelGuard)
-  @Query(() => [UsageBreakdownItemDTO])
-  async getAdminAiUsageByWorkspace(
-    @Args('periodStart', { type: () => Date, nullable: true })
-    periodStart?: Date,
-    @Args('periodEnd', { type: () => Date, nullable: true })
-    periodEnd?: Date,
-  ): Promise<UsageBreakdownItemDTO[]> {
-    const defaultEnd = new Date();
-    const defaultStart = new Date();
-
-    defaultStart.setDate(defaultStart.getDate() - 30);
-
-    const useDollarMode = !this.twentyConfigService.get('IS_BILLING_ENABLED');
-
-    const items = await this.usageAnalyticsService.getAdminAiUsageByWorkspace({
-      periodStart: periodStart ?? defaultStart,
-      periodEnd: periodEnd ?? defaultEnd,
-      useDollarMode,
-    });
-
-    if (items.length === 0) {
-      return items;
-    }
-
-    const workspaceIds = items.map((item) => item.key);
-    const workspaces = await this.workspaceRepository.find({
-      where: { id: In(workspaceIds) },
-      select: { id: true, displayName: true },
-    });
-
-    const nameMap = new Map(
-      workspaces
-        .filter((workspace) => isDefined(workspace.displayName))
-        .map((workspace) => [workspace.id, workspace.displayName!]),
-    );
-
-    return items.map((item) => ({
-      ...item,
-      label: nameMap.get(item.key),
-    }));
-  }
-
-  @UseGuards(AdminPanelGuard)
   @Query(() => MaintenanceModeDTO, { nullable: true })
   async getMaintenanceMode(): Promise<MaintenanceModeDTO | null> {
     const value = await this.maintenanceModeService.getMaintenanceMode();
@@ -716,14 +667,6 @@ export class AdminPanelResolver {
     @Args('workspaceId', { type: () => UUIDScalarType }) workspaceId: string,
   ): Promise<UserLookup> {
     return this.adminUserLookupService.workspaceLookup(workspaceId);
-  }
-
-  @UseGuards(ServerLevelImpersonateGuard)
-  @Query(() => AdminPanelWorkspaceBillingDTO, { nullable: true })
-  async workspaceBillingAdminPanel(
-    @Args('workspaceId', { type: () => UUIDScalarType }) workspaceId: string,
-  ): Promise<AdminPanelWorkspaceBillingDTO | null> {
-    return this.adminBillingService.getWorkspaceBilling(workspaceId);
   }
 
   @UseGuards(ServerLevelImpersonateGuard)

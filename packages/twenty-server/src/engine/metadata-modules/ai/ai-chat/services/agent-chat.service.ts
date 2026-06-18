@@ -25,7 +25,6 @@ import {
 import { WorkspaceEventBroadcaster } from 'src/engine/subscriptions/workspace-event-broadcaster/workspace-event-broadcaster.service';
 import { InjectWorkspaceScopedRepository } from 'src/engine/twenty-orm/workspace-scoped-repository/inject-workspace-scoped-repository.decorator';
 import { WorkspaceScopedRepository } from 'src/engine/twenty-orm/workspace-scoped-repository/workspace-scoped-repository';
-import { toDisplayCredits } from 'src/engine/core-modules/usage/utils/to-display-credits.util';
 import { AiChatFileAttachment } from 'src/engine/metadata-modules/ai/ai-chat/types/ai-chat-file-attachment.type';
 import { AgentTitleGenerationService } from './agent-title-generation.service';
 import { AgentChatThreadDTO } from '../dtos/agent-chat-thread.dto';
@@ -42,8 +41,8 @@ const serializeThreadForBroadcast = (
   totalCacheCreationTokens: thread.totalCacheCreationTokens,
   contextWindowTokens: thread.contextWindowTokens,
   conversationSize: thread.conversationSize,
-  totalInputCredits: toDisplayCredits(thread.totalInputCredits),
-  totalOutputCredits: toDisplayCredits(thread.totalOutputCredits),
+  totalInputCredits: thread.totalInputCredits,
+  totalOutputCredits: thread.totalOutputCredits,
   deletedAt: thread.deletedAt,
   lastMessageAt,
   createdAt: thread.createdAt,

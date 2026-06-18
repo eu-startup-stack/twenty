@@ -20,8 +20,6 @@ import { FlatPermissionFlagValidatorService } from 'src/engine/workspace-manager
 import { FlatRolePermissionFlagValidatorService } from 'src/engine/workspace-manager/workspace-migration/workspace-migration-builder/validators/services/flat-role-permission-flag-validator.service';
 import { FlatRoleTargetValidatorService } from 'src/engine/workspace-manager/workspace-migration/workspace-migration-builder/validators/services/flat-role-target-validator.service';
 import { FlatRoleValidatorService } from 'src/engine/workspace-manager/workspace-migration/workspace-migration-builder/validators/services/flat-role-validator.service';
-import { FlatRowLevelPermissionPredicateGroupValidatorService } from 'src/engine/workspace-manager/workspace-migration/workspace-migration-builder/validators/services/flat-row-level-permission-predicate-group-validator.service';
-import { FlatRowLevelPermissionPredicateValidatorService } from 'src/engine/workspace-manager/workspace-migration/workspace-migration-builder/validators/services/flat-row-level-permission-predicate-validator.service';
 import { FlatSkillValidatorService } from 'src/engine/workspace-manager/workspace-migration/workspace-migration-builder/validators/services/flat-skill-validator.service';
 import { FlatViewFieldGroupValidatorService } from 'src/engine/workspace-manager/workspace-migration/workspace-migration-builder/validators/services/flat-view-field-group-validator.service';
 import { FlatViewFieldValidatorService } from 'src/engine/workspace-manager/workspace-migration/workspace-migration-builder/validators/services/flat-view-field-validator.service';
@@ -63,8 +61,6 @@ import { FlatConnectionProviderValidatorService } from 'src/engine/workspace-man
     FlatPageLayoutValidatorService,
     FlatPageLayoutWidgetValidatorService,
     FlatPageLayoutTabValidatorService,
-    FlatRowLevelPermissionPredicateValidatorService,
-    FlatRowLevelPermissionPredicateGroupValidatorService,
     FlatFrontComponentValidatorService,
     FlatWebhookValidatorService,
     FlatApplicationVariableValidatorService,
@@ -96,8 +92,6 @@ import { FlatConnectionProviderValidatorService } from 'src/engine/workspace-man
     FlatPageLayoutValidatorService,
     FlatPageLayoutWidgetValidatorService,
     FlatPageLayoutTabValidatorService,
-    FlatRowLevelPermissionPredicateValidatorService,
-    FlatRowLevelPermissionPredicateGroupValidatorService,
     FlatFrontComponentValidatorService,
     FlatWebhookValidatorService,
     FlatApplicationVariableValidatorService,

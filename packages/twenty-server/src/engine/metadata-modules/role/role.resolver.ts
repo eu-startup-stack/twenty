@@ -58,13 +58,6 @@ import {
 import { UpdateRoleInput } from 'src/engine/metadata-modules/role/dtos/update-role.input';
 import { RoleService } from 'src/engine/metadata-modules/role/role.service';
 import { fromRoleEntitiesToRoleDtos } from 'src/engine/metadata-modules/role/utils/fromRoleEntityToRoleDto.util';
-import { UpsertRowLevelPermissionPredicatesInput } from 'src/engine/metadata-modules/row-level-permission-predicate/dtos/inputs/upsert-row-level-permission-predicates.input';
-import { RowLevelPermissionPredicateGroupDTO } from 'src/engine/metadata-modules/row-level-permission-predicate/dtos/row-level-permission-predicate-group.dto';
-import { RowLevelPermissionPredicateDTO } from 'src/engine/metadata-modules/row-level-permission-predicate/dtos/row-level-permission-predicate.dto';
-import { UpsertRowLevelPermissionPredicatesResultDTO } from 'src/engine/metadata-modules/row-level-permission-predicate/dtos/upsert-row-level-permission-predicates-result.dto';
-import { RowLevelPermissionPredicateGraphqlApiExceptionFilter } from 'src/engine/metadata-modules/row-level-permission-predicate/filters/row-level-permission-predicate-graphql-api-exception.filter';
-import { RowLevelPermissionPredicateGroupService } from 'src/engine/metadata-modules/row-level-permission-predicate/services/row-level-permission-predicate-group.service';
-import { RowLevelPermissionPredicateService } from 'src/engine/metadata-modules/row-level-permission-predicate/services/row-level-permission-predicate.service';
 import { UserRoleService } from 'src/engine/metadata-modules/user-role/user-role.service';
 import { WorkspaceCacheService } from 'src/engine/workspace-cache/services/workspace-cache.service';
 import { WorkspaceMigrationGraphqlApiExceptionInterceptor } from 'src/engine/workspace-manager/workspace-migration/interceptors/workspace-migration-graphql-api-exception.interceptor';
@@ -77,7 +70,6 @@ import { WorkspaceMemberWorkspaceEntity } from 'src/modules/workspace-member/sta
   SettingsPermissionGuard(PermissionFlagType.ROLES),
 )
 @UseFilters(
-  RowLevelPermissionPredicateGraphqlApiExceptionFilter,
   PermissionsGraphqlApiExceptionFilter,
   PreventNestToAutoLogGraphqlErrorsFilter,
 )
@@ -93,8 +85,6 @@ export class RoleResolver {
     private readonly apiKeyRoleService: ApiKeyRoleService,
     private readonly fieldPermissionService: FieldPermissionService,
     private readonly applicationService: ApplicationService,
-    private readonly rowLevelPermissionPredicateService: RowLevelPermissionPredicateService,
-    private readonly rowLevelPermissionPredicateGroupService: RowLevelPermissionPredicateGroupService,
     private readonly workspaceCacheService: WorkspaceCacheService,
     private readonly workspaceManyOrAllFlatEntityMapsCacheService: WorkspaceManyOrAllFlatEntityMapsCacheService,
   ) {}
@@ -268,20 +258,6 @@ export class RoleResolver {
     );
   }
 
-  @Mutation(() => UpsertRowLevelPermissionPredicatesResultDTO)
-  async upsertRowLevelPermissionPredicates(
-    @AuthWorkspace() workspace: WorkspaceEntity,
-    @Args('input')
-    input: UpsertRowLevelPermissionPredicatesInput,
-  ): Promise<UpsertRowLevelPermissionPredicatesResultDTO> {
-    return this.rowLevelPermissionPredicateService.upsertRowLevelPermissionPredicates(
-      {
-        workspaceId: workspace.id,
-        input,
-      },
-    );
-  }
-
   @Mutation(() => Boolean)
   async assignRoleToAgent(
     @Args('agentId', { type: () => UUIDScalarType }) agentId: string,
@@ -378,37 +354,5 @@ export class RoleResolver {
       expiresAt: apiKey.expiresAt,
       revokedAt: apiKey.revokedAt,
     }));
-  }
-
-  @ResolveField(
-    'rowLevelPermissionPredicates',
-    () => [RowLevelPermissionPredicateDTO],
-    { nullable: true },
-  )
-  async getRowLevelPermissionPredicatesForRole(
-    @Parent() role: RoleDTO,
-    @AuthWorkspace() workspace: WorkspaceEntity,
-  ): Promise<RowLevelPermissionPredicateDTO[]> {
-    const allPredicates =
-      await this.rowLevelPermissionPredicateService.findByWorkspaceId(
-        workspace.id,
-      );
-
-    return allPredicates.filter((predicate) => predicate.roleId === role.id);
-  }
-
-  @ResolveField(
-    'rowLevelPermissionPredicateGroups',
-    () => [RowLevelPermissionPredicateGroupDTO],
-    { nullable: true },
-  )
-  async getRowLevelPermissionPredicateGroupsForRole(
-    @Parent() role: RoleDTO,
-    @AuthWorkspace() workspace: WorkspaceEntity,
-  ): Promise<RowLevelPermissionPredicateGroupDTO[]> {
-    return this.rowLevelPermissionPredicateGroupService.findByRole(
-      workspace.id,
-      role.id,
-    );
   }
 }

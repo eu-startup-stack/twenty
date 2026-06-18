@@ -19,7 +19,6 @@ import {
   AuthException,
   AuthExceptionCode,
 } from 'src/engine/core-modules/auth/auth.exception';
-import { AvailableWorkspaces } from 'src/engine/core-modules/auth/dto/available-workspaces.dto';
 import { type AuthContextUser } from 'src/engine/core-modules/auth/types/auth-context.type';
 import { OnboardingStatus } from 'src/engine/core-modules/onboarding/enums/onboarding-status.enum';
 import {
@@ -585,20 +584,6 @@ export class UserResolver {
   })
   async workspaces(@Parent() user: UserEntity) {
     return user.userWorkspaces;
-  }
-
-  @ResolveField(() => AvailableWorkspaces)
-  async availableWorkspaces(
-    @AuthUser() user: AuthContextUser,
-    @AuthProvider() authProvider: AuthProviderEnum,
-  ): Promise<AvailableWorkspaces> {
-    return this.userWorkspaceService.setLoginTokenToAvailableWorkspacesWhenAuthProviderMatch(
-      await this.userWorkspaceService.findAvailableWorkspacesByEmail(
-        user.email,
-      ),
-      user,
-      authProvider,
-    );
   }
 
   @Mutation(() => Boolean)

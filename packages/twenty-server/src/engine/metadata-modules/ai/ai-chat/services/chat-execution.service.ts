@@ -18,7 +18,6 @@ import { getAppPath, isDefined } from 'twenty-shared/utils';
 import { MetricsService } from 'src/engine/core-modules/metrics/metrics.service';
 import { MetricsKeys } from 'src/engine/core-modules/metrics/types/metrics-keys.type';
 import { type ToolOutput } from 'src/engine/core-modules/tool/types/tool-output.type';
-import { UsageOperationType } from 'src/engine/core-modules/usage/enums/usage-operation-type.enum';
 
 import { type CodeExecutionStreamEmitter } from 'src/engine/core-modules/tool-provider/interfaces/code-execution-stream-emitter.type';
 
@@ -40,7 +39,6 @@ import { AGENT_CONFIG } from 'src/engine/metadata-modules/ai/ai-agent/constants/
 import { type BrowsingContextType } from 'src/engine/metadata-modules/ai/ai-agent/types/browsingContext.type';
 import { repairToolCall } from 'src/engine/metadata-modules/ai/ai-agent/utils/repair-tool-call.util';
 import { AiBillingService } from 'src/engine/metadata-modules/ai/ai-billing/services/ai-billing.service';
-import { convertDollarsToBillingCredits } from 'src/engine/metadata-modules/ai/ai-billing/utils/convert-dollars-to-billing-credits.util';
 import { countNativeWebSearchCallsFromSteps } from 'src/engine/metadata-modules/ai/ai-billing/utils/count-native-web-search-calls-from-steps.util';
 import {
   extractCacheCreationTokens,
@@ -343,16 +341,13 @@ export class ChatExecutionService {
         registeredModel.modelId,
         { usage, cacheCreationTokens },
       );
-      const creditsUsedMicro = Math.round(
-        convertDollarsToBillingCredits(costInDollars),
-      );
 
       await this.aiBillingService.emitAiTokenUsageEvent(
         workspace.id,
-        creditsUsedMicro,
+        Math.round(costInDollars * 1_000_000),
         totalTokens,
         registeredModel.modelId,
-        UsageOperationType.AI_CHAT_TOKEN,
+        'AI_CHAT_TOKEN',
         null,
         userWorkspaceId,
       );
@@ -499,7 +494,7 @@ export class ChatExecutionService {
             modelId: registeredModel.modelId,
             workspaceId: workspace.id,
             userWorkspaceId,
-            operationType: UsageOperationType.AI_CHAT_TOKEN,
+            operationType: 'AI_CHAT_TOKEN',
           },
         });
       },

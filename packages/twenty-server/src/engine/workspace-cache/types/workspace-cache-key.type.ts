@@ -8,13 +8,10 @@ import { type ResolverNameMapEntry } from 'src/engine/api/graphql/direct-executi
 import { type FlatApiKey } from 'src/engine/core-modules/api-key/types/flat-api-key.type';
 import { type ApplicationVariableCacheMaps } from 'src/engine/core-modules/application/application-variable/types/application-variable-cache-maps.type';
 import { type FlatApplicationCacheMaps } from 'src/engine/core-modules/application/types/flat-application-cache-maps.type';
-import { type CurrentBillingSubscription } from 'src/engine/core-modules/billing/types/flat-billing-subscription.type';
 import { type FlatWorkspaceMemberMaps } from 'src/engine/core-modules/user/types/flat-workspace-member-maps.type';
 import { type FlatRoleTargetByAgentIdMaps } from 'src/engine/metadata-modules/flat-agent/types/flat-role-target-by-agent-id-maps.type';
 import { type AllFlatEntityMaps } from 'src/engine/metadata-modules/flat-entity/types/all-flat-entity-maps.type';
 import { type UserWorkspaceRoleMap } from 'src/engine/metadata-modules/role-target/types/user-workspace-role-map';
-import { type FlatRowLevelPermissionPredicateGroupMaps } from 'src/engine/metadata-modules/row-level-permission-predicate/types/flat-row-level-permission-predicate-group-maps.type';
-import { type FlatRowLevelPermissionPredicateMaps } from 'src/engine/metadata-modules/row-level-permission-predicate/types/flat-row-level-permission-predicate-maps.type';
 
 export const WORKSPACE_CACHE_KEYS_V2 = {
   flatObjectMetadataMaps: 'flat-maps:object-metadata',
@@ -48,10 +45,6 @@ export const WORKSPACE_CACHE_KEYS_V2 = {
   flatPageLayoutMaps: 'flat-maps:page-layout',
   flatPageLayoutWidgetMaps: 'flat-maps:page-layout-widget',
   flatPageLayoutTabMaps: 'flat-maps:flatPageLayoutTabMaps',
-  flatRowLevelPermissionPredicateMaps:
-    'flat-maps:row-level-permission-predicate',
-  flatRowLevelPermissionPredicateGroupMaps:
-    'flat-maps:row-level-permission-predicate-group',
   flatFrontComponentMaps: 'flat-maps:front-component',
   flatWebhookMaps: 'flat-maps:webhook',
   flatApplicationVariableMaps: 'flat-maps:application-variable',
@@ -60,7 +53,6 @@ export const WORKSPACE_CACHE_KEYS_V2 = {
   apiKeyMap: 'cache:api-key-map',
   applicationVariableMaps: 'cache:application-variable',
   graphQLResolverNameMap: 'direct-execution:graphql-resolver-name-map',
-  currentBillingSubscription: 'billing:subscription',
 } as const satisfies Record<WorkspaceCacheKeyName, string>;
 
 export type AdditionalCacheDataMaps = {
@@ -72,12 +64,9 @@ export type AdditionalCacheDataMaps = {
   flatApplicationMaps: FlatApplicationCacheMaps;
   ORMEntityMetadatas: EntityMetadata[];
   flatRoleTargetByAgentIdMaps: FlatRoleTargetByAgentIdMaps;
-  flatRowLevelPermissionPredicateMaps: FlatRowLevelPermissionPredicateMaps;
-  flatRowLevelPermissionPredicateGroupMaps: FlatRowLevelPermissionPredicateGroupMaps;
   flatWorkspaceMemberMaps: FlatWorkspaceMemberMaps;
   applicationVariableMaps: ApplicationVariableCacheMaps;
   graphQLResolverNameMap: Record<string, ResolverNameMapEntry>;
-  currentBillingSubscription: CurrentBillingSubscription;
 };
 
 export type WorkspaceCacheDataMap = AllFlatEntityMaps<true> &

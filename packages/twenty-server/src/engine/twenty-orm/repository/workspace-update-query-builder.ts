@@ -31,14 +31,12 @@ import { validateQueryIsPermittedOrThrow } from 'src/engine/twenty-orm/repositor
 import { type WorkspaceDeleteQueryBuilder } from 'src/engine/twenty-orm/repository/workspace-delete-query-builder';
 import { WorkspaceSelectQueryBuilder } from 'src/engine/twenty-orm/repository/workspace-select-query-builder';
 import { type WorkspaceSoftDeleteQueryBuilder } from 'src/engine/twenty-orm/repository/workspace-soft-delete-query-builder';
-import { applyRowLevelPermissionPredicates } from 'src/engine/twenty-orm/utils/apply-row-level-permission-predicates.util';
 import { applyTableAliasOnWhereCondition } from 'src/engine/twenty-orm/utils/apply-table-alias-on-where-condition';
 import { computeEventSelectQueryBuilder } from 'src/engine/twenty-orm/utils/compute-event-select-query-builder.util';
 import { formatData } from 'src/engine/twenty-orm/utils/format-data.util';
 import { formatResult } from 'src/engine/twenty-orm/utils/format-result.util';
 import { formatTwentyOrmEventToDatabaseBatchEvent } from 'src/engine/twenty-orm/utils/format-twenty-orm-event-to-database-batch-event.util';
 import { getObjectMetadataFromEntityTarget } from 'src/engine/twenty-orm/utils/get-object-metadata-from-entity-target.util';
-import { validateRLSPredicatesForRecords } from 'src/engine/twenty-orm/utils/validate-rls-predicates-for-records.util';
 import { computeObjectTargetTable } from 'src/engine/utils/compute-object-target-table.util';
 
 export class WorkspaceUpdateQueryBuilder<
@@ -212,8 +210,6 @@ export class WorkspaceUpdateQueryBuilder<
           updatedValues.length === 1 ? updatedValues[0] : updatedValues;
       }
 
-      this.applyRowLevelPermissionPredicates();
-
       const valuesSet = this.expressionMap.valuesSet ?? {};
       const updatedRecords: T[] = before.map(
         (record, index) =>
@@ -224,10 +220,6 @@ export class WorkspaceUpdateQueryBuilder<
               : valuesSet),
           }) as T,
       );
-
-      this.validateRLSPredicatesForUpdate({
-        updatedRecords,
-      });
 
       const result = await super.execute();
 
@@ -425,8 +417,6 @@ export class WorkspaceUpdateQueryBuilder<
         this.expressionMap.valuesSet = input.partialEntity;
         this.where({ id: input.criteria });
 
-        this.applyRowLevelPermissionPredicates();
-
         const beforeRecord = beforeRecordById.get(input.criteria);
         const updatedRecords = beforeRecord
           ? [
@@ -617,55 +607,5 @@ export class WorkspaceUpdateQueryBuilder<
     }));
 
     return this;
-  }
-
-  private applyRowLevelPermissionPredicates(): void {
-    if (this.shouldBypassPermissionChecks) {
-      return;
-    }
-
-    const mainAliasTarget = this.getMainAliasTarget();
-
-    const objectMetadata = getObjectMetadataFromEntityTarget(
-      mainAliasTarget,
-      this.internalContext,
-    );
-
-    applyRowLevelPermissionPredicates({
-      queryBuilder: this as unknown as WorkspaceSelectQueryBuilder<T>,
-      objectMetadata,
-      internalContext: this.internalContext,
-      authContext: this.authContext,
-      featureFlagMap: this.featureFlagMap,
-    });
-  }
-
-  private validateRLSPredicatesForUpdate({
-    updatedRecords,
-  }: {
-    updatedRecords: T[];
-  }): void {
-    const mainAliasTarget = this.getMainAliasTarget();
-    const objectMetadata = getObjectMetadataFromEntityTarget(
-      mainAliasTarget,
-      this.internalContext,
-    );
-
-    const updatedRecordsFormatted = formatResult<T[]>(
-      updatedRecords,
-      objectMetadata,
-      this.internalContext.flatObjectMetadataMaps,
-      this.internalContext.flatFieldMetadataMaps,
-    );
-
-    validateRLSPredicatesForRecords({
-      records: updatedRecordsFormatted,
-      objectMetadata,
-      internalContext: this.internalContext,
-      authContext: this.authContext,
-      shouldBypassPermissionChecks: this.shouldBypassPermissionChecks,
-      errorMessage:
-        'Updated record does not satisfy row-level security constraints of your current role',
-    });
   }
 }

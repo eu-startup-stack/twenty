@@ -3,7 +3,6 @@ import { Test, type TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { generateText } from 'ai';
 
-import { BillingUsageService } from 'src/engine/core-modules/billing/services/billing-usage.service';
 import { ToolRegistryService } from 'src/engine/core-modules/tool-provider/services/tool-registry.service';
 import { WorkspaceEntity } from 'src/engine/core-modules/workspace/workspace.entity';
 import { AgentAsyncExecutorService } from 'src/engine/metadata-modules/ai/ai-agent-execution/services/agent-async-executor.service';
@@ -105,12 +104,6 @@ describe('AgentAsyncExecutorService — workflow agent role-scoped tool resoluti
           },
         },
         { provide: AiBillingService, useValue: aiBillingService },
-        {
-          provide: BillingUsageService,
-          useValue: {
-            hasAvailableCreditsOrThrow: jest.fn().mockResolvedValue(undefined),
-          },
-        },
         {
           provide: getWorkspaceScopedRepositoryToken(RoleTargetEntity),
           useValue: roleTargetRepository,

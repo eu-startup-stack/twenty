@@ -13,7 +13,6 @@ import { DatabaseHealthIndicator } from 'src/engine/core-modules/admin-panel/ind
 import { RedisHealthIndicator } from 'src/engine/core-modules/admin-panel/indicators/redis.health';
 import { WorkerHealthIndicator } from 'src/engine/core-modules/admin-panel/indicators/worker.health';
 import { MaintenanceModeService } from 'src/engine/core-modules/admin-panel/maintenance-mode.service';
-import { AdminPanelBillingService } from 'src/engine/core-modules/admin-panel/services/admin-panel-billing.service';
 import { AdminPanelChatService } from 'src/engine/core-modules/admin-panel/services/admin-panel-chat.service';
 import { AdminPanelConfigService } from 'src/engine/core-modules/admin-panel/services/admin-panel-config.service';
 import { AdminPanelServerAdminService } from 'src/engine/core-modules/admin-panel/services/admin-panel-server-admin.service';
@@ -23,9 +22,6 @@ import { AdminPanelUserLookupService } from 'src/engine/core-modules/admin-panel
 import { AdminPanelVersionService } from 'src/engine/core-modules/admin-panel/services/admin-panel-version.service';
 import { ApplicationRegistrationModule } from 'src/engine/core-modules/application/application-registration/application-registration.module';
 import { AuthModule } from 'src/engine/core-modules/auth/auth.module';
-import { BillingModule } from 'src/engine/core-modules/billing/billing.module';
-import { BillingCustomerEntity } from 'src/engine/core-modules/billing/entities/billing-customer.entity';
-import { BillingPriceEntity } from 'src/engine/core-modules/billing/entities/billing-price.entity';
 import { WorkspaceDomainsModule } from 'src/engine/core-modules/domain/workspace-domains/workspace-domains.module';
 import { EventLogEmitterModule } from 'src/engine/core-modules/event-logs/emit/event-log-emitter.module';
 import { FeatureFlagEntity } from 'src/engine/core-modules/feature-flag/feature-flag.entity';
@@ -40,7 +36,6 @@ import { SecureHttpClientModule } from 'src/engine/core-modules/secure-http-clie
 import { TelemetryModule } from 'src/engine/core-modules/telemetry/telemetry.module';
 import { TwoFactorAuthenticationModule } from 'src/engine/core-modules/two-factor-authentication/two-factor-authentication.module';
 import { UpgradeModule } from 'src/engine/core-modules/upgrade/upgrade.module';
-import { UsageModule } from 'src/engine/core-modules/usage/usage.module';
 import { UserWorkspaceEntity } from 'src/engine/core-modules/user-workspace/user-workspace.entity';
 import { UserVarsModule } from 'src/engine/core-modules/user/user-vars/user-vars.module';
 import { UserEntity } from 'src/engine/core-modules/user/user.entity';
@@ -59,11 +54,8 @@ import { provideWorkspaceScopedRepository } from 'src/engine/twenty-orm/workspac
       FeatureFlagEntity,
       AgentChatThreadEntity,
       AgentMessageEntity,
-      BillingCustomerEntity,
-      BillingPriceEntity,
     ]),
     AuthModule,
-    BillingModule,
     FileModule,
     WorkspaceDomainsModule,
     RedisClientModule,
@@ -75,7 +67,6 @@ import { provideWorkspaceScopedRepository } from 'src/engine/twenty-orm/workspac
     PermissionsModule,
     SecureHttpClientModule,
     ApplicationRegistrationModule,
-    UsageModule,
     KeyValuePairModule,
     UserVarsModule,
     UpgradeModule,
@@ -91,7 +82,6 @@ import { provideWorkspaceScopedRepository } from 'src/engine/twenty-orm/workspac
     AdminPanelUserLookupService,
     AdminPanelServerAdminService,
     AdminPanelStatisticsService,
-    AdminPanelBillingService,
     AdminPanelChatService,
     AdminPanelConfigService,
     AdminPanelSigningKeyService,
@@ -106,7 +96,6 @@ import { provideWorkspaceScopedRepository } from 'src/engine/twenty-orm/workspac
     AppHealthIndicator,
     provideWorkspaceScopedRepository(AgentMessageEntity),
     provideWorkspaceScopedRepository(FeatureFlagEntity),
-    provideWorkspaceScopedRepository(BillingCustomerEntity),
   ],
   exports: [
     AdminPanelUserLookupService,

@@ -51,9 +51,7 @@ export const SignInUpWorkspaceScopeFormEffect = () => {
       !workspaceAuthProviders.microsoft &&
       !workspaceAuthProviders.password;
 
-    if (hasOnlySSOProvidersEnabled && workspaceAuthProviders.sso.length > 1) {
-      return setSignInUpStep(SignInUpStep.SSOIdentityProviderSelection);
-    }
+    void hasOnlySSOProvidersEnabled;
   }, [setSignInUpStep, workspaceAuthProviders]);
 
   useEffect(() => {
