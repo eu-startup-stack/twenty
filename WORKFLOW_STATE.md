@@ -6,7 +6,8 @@ Remove all non-open-source (Enterprise Edition) code from the twenty fork.
 - Files without it are AGPLv3 (open source) → keep, but clean up references to deleted Enterprise files.
 - Commit with message "Remove non-open-source Enterprise Edition code" and push to origin main.
 
-## Current State (discovered 2026-06-18)
+## Current State (2026-06-18) — IMPLEMENTATION COMPLETE
+**All 7 tasks executed; commit `12acc9f4fc` pushed to origin/main.** All verification grep checks return empty.
 
 ### Already done (by a prior run, uncommitted in working tree)
 - **298 Enterprise code files deleted** (confirmed via `git grep "@license Enterprise" HEAD` = 298; working tree has 0 Enterprise code files, only `packages/twenty-ui/LICENSE` remains which is the license text itself — correct to keep).
@@ -18,6 +19,9 @@ Remove all non-open-source (Enterprise Edition) code from the twenty fork.
 **Root cause**: The prior run appears to have used `rg` (ripgrep) for reference cleanup, but `rg` is NOT installed in this environment. All `rg` searches returned empty (command-not-found errors were suppressed). Consequently, only 6 top-level module files were cleaned; the vast majority of OS files with dangling imports to deleted Enterprise modules were NOT cleaned.
 
 **`rg` is not installed — ALL searches must use `grep` (bash) or the Grep tool.**
+
+### ✅ COMPLETED on 2026-06-18
+All 7 tasks in the plan have been executed. Commit `12acc9f4fc` "Remove non-open-source Enterprise Edition code" pushed to origin/main. All verification grep checks return empty.
 
 #### Scope of remaining dangling references:
 - **79 backend files** in `packages/twenty-server/src/` still import from deleted modules.
@@ -61,10 +65,24 @@ Remove all non-open-source (Enterprise Edition) code from the twenty fork.
 6. **`auth-sso.service.ts` and `create-sso-connected-account.service.ts`**: confirmed OS, no dangling imports. Leave as-is.
 
 ## Success Criteria
-- `grep -rl "@license Enterprise" packages/` returns only `packages/twenty-ui/LICENSE`.
-- No file in `packages/twenty-server/src/` or `packages/twenty-front/src/` imports from a deleted file.
-- `packages/twenty-shared/src/types/index.ts` does not export deleted RowLevelPermission types.
-- Commit "Remove non-open-source Enterprise Edition code" pushed to origin main.
+- `grep -rl "@license Enterprise" packages/` returns only `packages/twenty-ui/LICENSE`. ✅
+- No file in `packages/twenty-server/src/` or `packages/twenty-front/src/` imports from a deleted file. ✅
+- `packages/twenty-shared/src/types/index.ts` does not export deleted RowLevelPermission types. ✅
+- Commit "Remove non-open-source Enterprise Edition code" pushed to origin main. ✅
+  - Commit hash: `12acc9f4fc`
+  - Pushed: `7d45315b71..12acc9f4fc  main -> main`
+  - 487 files changed, 385 insertions(+), 35109 deletions(-)
+
+## Implementation Summary
+- **Files deleted**: 386 (Enterprise + dependent OS files, plus 4 spec files testing deleted code)
+- **OS files edited**: ~97 (cleaned up dangling references)
+- **Key areas cleaned**:
+  - 2 twenty-shared type files (`types/index.ts`, `types/ObjectPermissions.ts`)
+  - Backend billing/usage (~40 files)
+  - Backend SSO/Enterprise/DNS/event-logs/jwt-rotation (~20 files)
+  - Backend RLS (~25 files: ORM, query builders, role module, role resolver, flat-entity types, workspace-migration, etc.)
+  - Frontend: SettingsRoutes, SignInUpWorkspaceScopeForm, SignInUpStep state, SignInUpWorkspaceScopeFormEffect, useSaveDraftRoleToDB
+- **Verification**: All 4 grep checks from Task 7 pass empty.
 
 ## Non-goals / Out of scope
 - Regenerating `generated-metadata/graphql.ts` (requires running codegen, which needs network/deps).
